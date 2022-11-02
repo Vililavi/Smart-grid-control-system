@@ -27,6 +27,21 @@ class Genome:
         # TODO: Have this here or as a function in some other module?
 
     @classmethod
+    def create_new(cls, key: int, num_inputs: int, num_outputs: int, innov_start: int) -> "Genome":
+        """Create a new Genome with random weights and without hidden nodes."""
+        non_input_keys = [num_inputs + i for i in range(num_outputs)]
+        nodes = []
+        connections = {}
+        for i in range(num_inputs):
+            nodes.append(NodeGene(i, NodeType.SENSOR))
+            for j in range(num_outputs):
+                c_key = (i, j)
+                connections[c_key] = ConnectionGene(i, num_inputs + j, 2 * random() - 1, True, innov_start + i * j)
+        for i in range(num_outputs):
+            nodes.append(NodeGene(i + num_inputs, NodeType.OUTPUT))
+        return Genome(key, non_input_keys, nodes, connections)
+
+    @classmethod
     def from_crossover(cls, key: int, genome_1: "Genome", genome_2: "Genome", keep_disable_prob: float) -> "Genome":
         """Produces a new Genome (offspring) via crossover from two parent genomes."""
         if genome_1.fitness > genome_2.fitness:

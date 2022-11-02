@@ -36,11 +36,6 @@ class SpeciesSet:
         self._species: dict[int, Species] = {}
         self._genome_to_species: dict[int, int] = {}
 
-    def speciate(self, population, generation: int) -> None:
-        """Divide population into species."""
-
-        # TODO
-
     def get_species_id(self, genome_id: int) -> int:
         """Get id of the species for a given individual."""
         return self._genome_to_species[genome_id]
@@ -49,3 +44,8 @@ class SpeciesSet:
         """Returns the species object of the given individual."""
         species_id = self._genome_to_species[genome_id]
         return self._species[species_id]
+
+    def speciate(self, population: dict[int, Genome], generation: int) -> None:
+        """Divide population into species."""
+
+        # TODO
