@@ -1,3 +1,6 @@
 """Functions for implementing mutation logic."""
 
-# TODO
+from genetics.genome import Genome
+
+
+

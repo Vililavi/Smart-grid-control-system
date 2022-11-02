@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
+from random import random
 
 
 class NodeType(Enum):
@@ -30,3 +31,19 @@ class ConnectionGene:
     weight: float
     enabled: bool
     innovation_num: int
+
+    def crossover(self, other_conn: "ConnectionGene",  keep_disable_prob: float) -> "ConnectionGene":
+        """Crossover this connection gene with another one"""
+        assert self.node_in_idx == other_conn.node_in_idx
+        assert self.node_out_idx == other_conn.node_out_idx
+        assert self.innovation_num == other_conn.innovation_num
+
+        weight = other_conn.weight
+        if random() < 0.5:
+            weight = self.weight
+
+        enabled = True
+        if (not self.enabled or not other_conn.enabled) and random() < keep_disable_prob:
+            enabled = False
+
+        return ConnectionGene(self.node_in_idx, self.node_out_idx, weight, enabled, self.innovation_num)
