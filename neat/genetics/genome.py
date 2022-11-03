@@ -106,3 +106,41 @@ class Genome:
         connection = ConnectionGene(in_key, out_key, weight, enabled, next(innov_counter))
         self.connections[key] = connection
         return connection
+
+    @staticmethod
+    def genome_distance(genome_1: "Genome", genome_2: "Genome", disjoint_coeff: float, weight_coeff: float) -> float:
+        """Compute the distance of the two given genomes."""
+
+        node_distance = Genome._compute_node_distance(genome_1, genome_2, disjoint_coeff)
+        connection_distance = Genome._compute_connection_distance(genome_1, genome_2, disjoint_coeff, weight_coeff)
+        return node_distance + connection_distance
+
+    @staticmethod
+    def _compute_node_distance(genome_1: "Genome", genome_2: "Genome", disjoint_coeff: float) -> float:
+        max_nodes = max(len(genome_1.nodes), len(genome_2.nodes))
+        if max_nodes == 0:
+            return 0.0
+        return abs(len(genome_1.nodes) - len(genome_2.nodes)) * disjoint_coeff / max_nodes
+
+    @staticmethod
+    def _compute_connection_distance(
+        genome_1: "Genome", genome_2: "Genome", disjoint_coeff: float, weight_coeff: float
+    ) -> float:
+        if not (genome_1.connections or genome_2.connections):
+            return 0.0
+        weight_diff = 0.0
+        matching_connections = 0
+        disjoint_connections = 0
+        for key_1, conn_1 in genome_1.conns_by_innovation.items():
+            conn_2 = genome_2.conns_by_innovation.get(key_1)
+            if conn_2 is None:
+                disjoint_connections += 1
+            else:
+                matching_connections += 1
+                weight_diff += ConnectionGene.distance(conn_1, conn_2)
+        for key_2 in genome_2.conns_by_innovation:
+            if key_2 not in genome_1.conns_by_innovation:
+                disjoint_connections += 1
+
+        max_conn = max(len(genome_1.connections), len(genome_2.connections))
+        return disjoint_coeff * disjoint_connections / max_conn + weight_coeff * weight_diff / matching_connections

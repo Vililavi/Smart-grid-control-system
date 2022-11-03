@@ -28,6 +28,24 @@ class Species:
         return [m.fitness for m in self.members.values()]
 
 
+class DistanceCache:
+    """Caches genome distances for purposes of speciation."""
+
+    def __init__(self):
+        self.distances: dict[tuple[int, int], float] = {}
+
+    def __call__(self, genome_1: Genome, genome_2: Genome) -> float:
+        """Get distance of given genomes."""
+        key_1 = genome_1.key
+        key_2 = genome_2.key
+        d = self.distances.get((key_1, key_2))
+        if d is None:
+            d = Genome.genome_distance(genome_1, genome_2)
+            self.distances[key_1, key_2] = d
+            self.distances[key_2, key_1] = d
+        return d
+
+
 class SpeciesSet:
     """Handles speciation, i.e. the division of the population into species."""
 
