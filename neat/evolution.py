@@ -5,6 +5,7 @@ from typing import Optional, Callable
 
 from neat.genetics.genome import Genome
 from neat.genetics.species import SpeciesSet
+from neat.reproduction import Reproduction
 
 
 class Evolution:
@@ -12,18 +13,22 @@ class Evolution:
 
     def __init__(self, num_inputs: int, num_outputs: int, population_size: int):
         self.generation = 0
-        self.innovation_counter = count(num_inputs * num_outputs + 1)
-        self.population = self._get_initial_population(num_inputs, num_outputs, population_size)
+        # self.innovation_counter = count(num_inputs * num_outputs + 1)
+        # self.population = self._get_initial_population(num_inputs, num_outputs, population_size)
+        self.reproduction = Reproduction(num_inputs, num_outputs)
+        self.population = self.reproduction.create_new_population(population_size)
+
         self.species_set = SpeciesSet()
         self.species_set.speciate(self.population, self.generation)
+
         self.best_genome: Optional[Genome] = None
 
-    @staticmethod
-    def _get_initial_population(num_inputs: int, num_outputs: int, population_size: int) -> dict[int, Genome]:
-        genomes: dict[int, Genome] = {}
-        for i in range(population_size):
-            genomes[i] = Genome.create_new(i, num_inputs, num_outputs, 1)
-        return genomes
+    # @staticmethod
+    # def _get_initial_population(num_inputs: int, num_outputs: int, population_size: int) -> dict[int, Genome]:
+    #     genomes: dict[int, Genome] = {}
+    #     for i in range(population_size):
+    #         genomes[i] = Genome.create_new(i, num_inputs, num_outputs, 1)
+    #     return genomes
 
     def run(self, fitness_function: Callable[[list[tuple[int, Genome]]], None], fitness_goal: float, n: int) -> Genome:
         for _ in range(n):
@@ -42,6 +47,7 @@ class Evolution:
 
             self.species_set.speciate(self.population, self.generation)
             self.generation += 1
+        return self.best_genome
 
     def _get_best_genome(self) -> Genome:
         best = None
