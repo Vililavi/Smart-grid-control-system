@@ -1,31 +1,23 @@
 """Coordinate and execute NEAT algorithm."""
 
-from dataclasses import dataclass
 from typing import Optional, Callable
 
 from neat.genetics.genome import Genome
 from neat.genetics.species import SpeciesSet
+from neat.config import NeatParams
 from neat.reproduction import Reproduction
-
-
-@dataclass
-class NeatParams:
-    """Dataclass for storing NEAT-specific parameters."""
-
-    compatibility_threshold: float
-    disjoint_coefficient: float
-    weight_coefficient: float
 
 
 class Evolution:
     """Tracks the evolution of a population of species and genomes."""
 
-    def __init__(self, num_inputs: int, num_outputs: int, population_size: int, neat_params: NeatParams):
+    def __init__(self, num_inputs: int, num_outputs: int, neat_params: NeatParams):
+        self._neat_params = neat_params
         self.generation = 0
         # self.innovation_counter = count(num_inputs * num_outputs + 1)
         # self.population = self._get_initial_population(num_inputs, num_outputs, population_size)
         self.reproduction = Reproduction(num_inputs, num_outputs)
-        self.population = self.reproduction.create_new_population(population_size)
+        self.population = self.reproduction.create_new_population(self._neat_params.population_size)
 
         self.species_set = SpeciesSet(
             neat_params.compatibility_threshold, neat_params.disjoint_coefficient, neat_params.weight_coefficient
@@ -52,9 +44,9 @@ class Evolution:
             if self.best_genome.fitness > fitness_goal:
                 break
 
-            # TODO: create new generation
-            #  - reproduction
-            #  - mutation
+            self.population = self.reproduction.reproduce(
+                self.species_set, self._neat_params.population_size, self.generation
+            )
 
             self.species_set.speciate(self.population, self.generation)
             self.generation += 1

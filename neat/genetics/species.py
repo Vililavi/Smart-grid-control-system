@@ -56,7 +56,7 @@ class SpeciesSet:
 
     def __init__(self, compatibility_threshold: float, disjoint_coefficient: float, weight_coefficient: float):
         self._indexer = count(1)
-        self._species: dict[int, Species] = {}
+        self.species: dict[int, Species] = {}
         self._genome_to_species: dict[int, int] = {}
         self._compatibility_threshold = compatibility_threshold
         self.disjoint_coeff = disjoint_coefficient
@@ -69,7 +69,7 @@ class SpeciesSet:
     def get_species(self, genome_id: int) -> Species:
         """Returns the species object of the given individual."""
         species_id = self._genome_to_species[genome_id]
-        return self._species[species_id]
+        return self.species[species_id]
 
     def speciate(self, population: dict[int, Genome], generation: int) -> None:
         """Divide population into species."""
@@ -88,7 +88,7 @@ class SpeciesSet:
         """
         new_representatives = {}
         new_members = {}
-        for species_id, species in self._species.items():
+        for species_id, species in self.species.items():
             candidates = []
             for genome_id in unspeciated:
                 genome = population[genome_id]
@@ -145,10 +145,10 @@ class SpeciesSet:
     ) -> None:
         self._genome_to_species = {}
         for species_id, repr_id in representatives.items():
-            species = self._species[species_id]
+            species = self.species[species_id]
             if species is None:
                 species = Species(species_id, generation)
-                self._species[species_id] = species
+                self.species[species_id] = species
 
             s_members = members[species_id]
             for genome_id in s_members:
