@@ -1,2 +1,3 @@
 # Add .idea and other IDE config folders to gitignore to prevent IDE setup mixups
 /.idea
+__pycache__/
