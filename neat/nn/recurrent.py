@@ -1,17 +1,15 @@
-from graphs import required_for_output
+from neat.graphs import required_for_output
 
-""" 
-node_evals = [(node, activation, aggregation, bias, response, inputs)]
-
+"""
+INPUT:
+node_evals = [(node_key, activation_function, aggregation_function, bias, response, inputs)]
 r = RecurrentNetwork(inputs, outputs, node_evals)
 
-----------------------------------------------------------------------
-
-Example input:
+Example:
 node_evals = [(0, activations.sigmoid_activation, sum, 0.0, 1.0, [])]
-
 r = RecurrentNetwork([], [0], node_evals)
 """
+
 class RecurrentNetwork(object):
     def __init__(self, inputs, outputs, node_evals):
         self.input_nodes = inputs
