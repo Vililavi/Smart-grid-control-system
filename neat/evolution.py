@@ -11,12 +11,16 @@ from neat.reproduction import Reproduction
 class Evolution:
     """Tracks the evolution of a population of species and genomes."""
 
-    def __init__(self, num_inputs: int, num_outputs: int, neat_params: NeatParams):
+    def __init__(
+        self,
+        num_inputs: int,
+        num_outputs: int,
+        neat_params: NeatParams,
+        species_fitness_function: Callable[[list[float]], float]
+    ):
         self._neat_params = neat_params
         self.generation = 0
-        # self.innovation_counter = count(num_inputs * num_outputs + 1)
-        # self.population = self._get_initial_population(num_inputs, num_outputs, population_size)
-        self.reproduction = Reproduction(num_inputs, num_outputs)
+        self.reproduction = Reproduction(num_inputs, num_outputs, neat_params, species_fitness_function)
         self.population = self.reproduction.create_new_population(self._neat_params.population_size)
 
         self.species_set = SpeciesSet(
@@ -25,13 +29,6 @@ class Evolution:
         self.species_set.speciate(self.population, self.generation)
 
         self.best_genome: Optional[Genome] = None
-
-    # @staticmethod
-    # def _get_initial_population(num_inputs: int, num_outputs: int, population_size: int) -> dict[int, Genome]:
-    #     genomes: dict[int, Genome] = {}
-    #     for i in range(population_size):
-    #         genomes[i] = Genome.create_new(i, num_inputs, num_outputs, 1)
-    #     return genomes
 
     def run(self, fitness_function: Callable[[list[tuple[int, Genome]]], None], fitness_goal: float, n: int) -> Genome:
         for _ in range(n):
