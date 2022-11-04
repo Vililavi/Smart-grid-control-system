@@ -25,7 +25,8 @@ class Reproduction:
         self.species_fitness_function = species_fitness_function
 
         self.genome_indexer = count(1)
-        self.innovation_counter = count(num_inputs * num_outputs + 1)
+        self.node_counter = count(num_inputs + num_outputs + 1)
+        self.conn_counter = count(num_inputs * num_outputs + 1)
         self.ancestors: dict[int, tuple[int, int]] = {}
 
     def create_new_population(self, population_size: int) -> dict[int, Genome]:
@@ -185,7 +186,8 @@ class Reproduction:
             offspring.mutate(
                 self.neat_params.node_mutation_probability,
                 self.neat_params.connection_mutation_probability,
-                self.innovation_counter
+                self.node_counter,
+                self.conn_counter
             )
             new_population[genome_id] = offspring
             self.ancestors[genome_id] = (parent_1_id, parent_2_id)
