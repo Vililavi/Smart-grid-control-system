@@ -5,7 +5,7 @@ from random import choice
 from typing import Callable
 
 from neat.config import NeatParams
-from neat.genetics.genome import Genome
+from neat.genetics.genome import Genome, Innovations
 from neat.genetics.species import SpeciesSet, Species
 
 
@@ -55,6 +55,7 @@ class Reproduction:
 
         new_population = {}
         surviving_species_dict = {}
+        new_innovations = Innovations()
         for spawn_amount, species in zip(spawn_amounts, surviving_species):
             possible_parents = self._select_genomes_for_reproduction(
                 spawn_amount, species, surviving_species_dict, new_population
@@ -62,7 +63,7 @@ class Reproduction:
             spawn_amount -= 1
             if spawn_amount <= 0:
                 continue
-            self._spawn_offspring(spawn_amount, possible_parents, new_population)
+            self._spawn_offspring(spawn_amount, possible_parents, new_population, new_innovations)
         species_set.species = surviving_species_dict
         return new_population
 
@@ -171,7 +172,11 @@ class Reproduction:
         return old_members[:repro_cutoff]
 
     def _spawn_offspring(
-            self, spawn_amount: int, possible_parents: list[tuple[int, Genome]], new_population: dict[int, Genome]
+        self,
+        spawn_amount: int,
+        possible_parents: list[tuple[int, Genome]],
+        new_population: dict[int, Genome],
+        new_innovations: Innovations
     ) -> None:
         while spawn_amount > 0:
             spawn_amount -= 1
@@ -187,7 +192,8 @@ class Reproduction:
                 self.neat_params.node_mutation_probability,
                 self.neat_params.connection_mutation_probability,
                 self.node_counter,
-                self.conn_counter
+                self.conn_counter,
+                new_innovations
             )
             new_population[genome_id] = offspring
             self.ancestors[genome_id] = (parent_1_id, parent_2_id)
