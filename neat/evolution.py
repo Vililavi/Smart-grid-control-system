@@ -33,7 +33,7 @@ class Evolution:
     def run(self, fitness_function: Callable[[list[tuple[int, Genome]]], None], fitness_goal: float, n: int) -> Genome:
         print("Beginning species evolution")
         for _ in range(n):
-            print(f"Generation {self.generation}")
+            print(f"Generation {self.generation}, population size: {len(self.population)}")
             fitness_function(list(self.population.items()))
 
             best = self._get_best_genome()
