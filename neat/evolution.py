@@ -31,7 +31,9 @@ class Evolution:
         self.best_genome: Optional[Genome] = None
 
     def run(self, fitness_function: Callable[[list[tuple[int, Genome]]], None], fitness_goal: float, n: int) -> Genome:
+        print("Beginning species evolution")
         for _ in range(n):
+            print(f"Generation {self.generation}")
             fitness_function(list(self.population.items()))
 
             best = self._get_best_genome()
@@ -47,6 +49,7 @@ class Evolution:
 
             self.species_set.speciate(self.population, self.generation)
             self.generation += 1
+        print("Evolution finished!")
         return self.best_genome
 
     def _get_best_genome(self) -> Genome:

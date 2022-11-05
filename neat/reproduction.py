@@ -25,8 +25,8 @@ class Reproduction:
         self.species_fitness_function = species_fitness_function
 
         self.genome_indexer = count(1)
-        self.node_counter = count(num_inputs + num_outputs + 1)
-        self.conn_counter = count(num_inputs * num_outputs + 1)
+        self.node_counter = count(num_inputs + num_outputs)
+        self.conn_counter = count(num_inputs * num_outputs)
         self.ancestors: dict[int, tuple[int, int]] = {}
 
     def create_new_population(self, population_size: int) -> dict[int, Genome]:
@@ -34,7 +34,7 @@ class Reproduction:
         genomes: dict[int, Genome] = {}
         for _ in range(population_size):
             key = next(self.genome_indexer)
-            genomes[key] = Genome.create_new(key, self.num_inputs, self.num_outputs, 1)
+            genomes[key] = Genome.create_new(key, self.num_inputs, self.num_outputs, 0)
             self.ancestors[key] = tuple()
         return genomes
 

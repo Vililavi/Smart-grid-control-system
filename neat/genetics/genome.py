@@ -113,7 +113,7 @@ class Genome:
         self, conn_counter: count, inns_in_curr_gen: Innovations
     ) -> Optional[ConnectionGene]:
         """Mutates this genome by adding a new connection."""
-        in_key = choice(self.nodes)
+        in_key = choice(list(self.nodes.keys()))
         out_key = choice(self.non_input_keys)
         key = (in_key, out_key)
         if key in self.connections:

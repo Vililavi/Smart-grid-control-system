@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 from itertools import count
 
-from genome import Genome
+from neat.genetics.genome import Genome
 
 
 @dataclass
@@ -145,7 +145,7 @@ class SpeciesSet:
     ) -> None:
         self._genome_to_species = {}
         for species_id, repr_id in representatives.items():
-            species = self.species[species_id]
+            species = self.species.get(species_id)
             if species is None:
                 species = Species(species_id, generation)
                 self.species[species_id] = species
