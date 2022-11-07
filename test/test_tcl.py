@@ -15,9 +15,9 @@ class TestTCL(unittest.TestCase):
             _building_heating=0.0,
         )
         self.tcl = TCL(
+            nominal_power=1.5,
             _backup_controller=self.backup,
             _temp_model=self.model,
-            _nominal_power=1.5
         )
 
     def test_backup_get_action(self):

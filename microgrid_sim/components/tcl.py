@@ -76,23 +76,23 @@ class TCLTemperatureModel:
 class TCL:
     """Model for a Thermostatically Controlled Load (TCL), e.g. an air conditioner or a water heater etc."""
     soc: float = field(init=False)
+    nominal_power: float
     _backup_controller: BackupController
     _temp_model: TCLTemperatureModel
-    _nominal_power: float
 
     def __post_init__(self):
         self.soc = self._backup_controller.get_state_of_charge(self._temp_model.in_temp)
 
-    def update(self, out_temp: float, tcl_action: int) -> int:
+    def update(self, out_temp: float, tcl_action: int) -> float:
         """
         Update the state of the TCL.
 
         :param out_temp: Outside temperature.
         :param tcl_action: Desired TCL action (ON/OFF).
-        :return: Final TCL action (ON/OFF).
+        :return: Energy consumed.
         """
         action = self._backup_controller.get_action(tcl_action, self._temp_model.in_temp)
-        tcl_heating = self._nominal_power * action
+        tcl_heating = self.nominal_power * action
         in_temp = self._temp_model.update(out_temp, tcl_heating)
         self.soc = self._backup_controller.get_state_of_charge(in_temp)
-        return action
+        return tcl_heating
