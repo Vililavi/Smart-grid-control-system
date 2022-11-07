@@ -1,6 +1,6 @@
 import unittest
 
-from microgrid.components.tcl import TCL, BackupController, TCLTemperatureModel
+from microgrid_sim.components.tcl import TCL, BackupController, TCLTemperatureModel
 
 
 class TestTCL(unittest.TestCase):

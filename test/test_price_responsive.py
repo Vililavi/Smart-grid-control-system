@@ -1,7 +1,7 @@
 import unittest
 from itertools import count
 from unittest.mock import patch
-from microgrid.components.price_responsive import PriceResponsiveLoad
+from microgrid_sim.components.price_responsive import PriceResponsiveLoad
 
 
 class TestPriceResponsive(unittest.TestCase):
@@ -18,7 +18,7 @@ class TestPriceResponsive(unittest.TestCase):
         ]
         for case in cases:
             with self.subTest(case["case"]):
-                with patch("microgrid.components.price_responsive.random", return_value=case["rand_out"]):
+                with patch("microgrid_sim.components.price_responsive.random", return_value=case["rand_out"]):
                     res = self.price_resp._execute_load(case["load"], case["l_time"], case["c_time"], case["price"])
                 self.assertEqual(res, case["res"])
 
@@ -30,7 +30,7 @@ class TestPriceResponsive(unittest.TestCase):
             2: 1.0,
             3: -1.0,
         }
-        with patch("microgrid.components.price_responsive.random", return_value=0.5):
+        with patch("microgrid_sim.components.price_responsive.random", return_value=0.5):
             load = self.price_resp.get_load(3.0, -2)
         self.assertEqual(7.0, load)
         self.assertIn(1, self.price_resp._shifted_loads)
