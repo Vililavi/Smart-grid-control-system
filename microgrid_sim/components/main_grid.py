@@ -4,9 +4,11 @@ import pandas as pd
 class MainGrid:
     """Model for the main electricity grid."""
 
-    def __init__(self, up_prices_file: str, down_prices_file: str):
+    def __init__(self, up_prices_file: str, down_prices_file: str, imp_trans_cost: float, exp_trans_cost: float):
         self._up_prices = pd.read_csv(up_prices_file, delimiter=",")
         self._down_prices = pd.read_csv(down_prices_file, delimiter=",")
+        self.imp_transmission_cost = imp_trans_cost
+        self.exp_transmission_cost = exp_trans_cost
 
     def get_prices(self, idx: int) -> tuple[float, float]:
         """
