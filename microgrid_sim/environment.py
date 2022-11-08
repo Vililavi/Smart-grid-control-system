@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field, InitVar
 from itertools import count
+from numpy.typing import ArrayLike
 
 from microgrid_sim.components.main_grid import MainGrid
 from microgrid_sim.components.der import DER
@@ -7,11 +8,14 @@ from microgrid_sim.components.ess import ESS
 from microgrid_sim.components.price_responsive import PriceResponsiveLoad
 from microgrid_sim.components.tcl import TCL
 from microgrid_sim.components.tcl_aggregator import TCLAggregator
+from microgrid_sim.action import Action
+from microgrid_sim.state import State
 
 
 @dataclass
 class Environment:
     """Environment that the EMS agent interacts with, combining the environment together."""
+    prices_and_temps: ArrayLike  # TODO: Make a class for price counter tracking?
     main_grid: MainGrid
     der: DER
     ess: ESS
@@ -25,11 +29,12 @@ class Environment:
         self.tcl_aggregator = TCLAggregator(tcls)
         self._timestep_counter = count(start_time_idx)
 
-    def tick(self):
+    def tick(self, action: Action) -> tuple[float, State]:
         """
         Simulate one (next) timestep with the given control actions.
         Returns generated profit (reward) and the new state of the environment.
         """
+        # TODO
 
     def _cover_energy_deficiency(self, energy: float, priority: str) -> float:
         """Cover energy deficiency from ESS and/or MainGrid. Returns cost."""
