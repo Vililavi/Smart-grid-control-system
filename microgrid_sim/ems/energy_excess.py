@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from components.ess import ESS
-from components.main_grid import MainGrid
+from microgrid_sim.components.ess import ESS
+from microgrid_sim.components.main_grid import MainGrid
 
 @dataclass
 class EnergyExcessAction:

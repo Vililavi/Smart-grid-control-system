@@ -1,6 +1,6 @@
-from components.der import DER
-from components.ess import ESS
-from components.main_grid import MainGrid
+from microgrid_sim.components.der import DER
+from microgrid_sim.components.ess import ESS
+from microgrid_sim.components.main_grid import MainGrid
 
 class EnergyDeficiency:
     """Model for energy deficiency action"""
