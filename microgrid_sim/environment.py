@@ -34,7 +34,27 @@ class Environment:
         Simulate one (next) timestep with the given control actions.
         Returns generated profit (reward) and the new state of the environment.
         """
-        # TODO
+        # TODO:
+        #  - Apply action:
+        #    * control TCLs & get spent energy
+        #    * apply price level & get energy spent by residential loads
+        #    * compute energy excess/deficiency from generated and used energy amounts
+        #    * handle energy excess or deficiency
+        #  - Compute reward based on sold/purchased energy etc.
+        #  - Get next state:
+        #    * TCL & ESS states
+        #    * New temperature and base price level
+        #    * Generated energy & buying price
+        #    * Time of day and base residential load
+        reward = self._apply_action(
+            # TODO: figure out the signature (dataclass object or separate values - ints vs floats and strings etc)
+        )
+        state = self._get_next_state()
+        return reward, state
+
+    def _apply_action(self, tcl_action, price_level, energy_deficiency: str, energy_excess: str) -> float:
+        """Apply the choices of the agent and return reward."""
+        # TODO: split computing reward to a separate method or do it here?
 
     def _cover_energy_deficiency(self, energy: float, priority: str) -> float:
         """Cover energy deficiency from ESS and/or MainGrid. Returns cost."""
@@ -43,3 +63,7 @@ class Environment:
     def _handle_excess_energy(self, energy: float, priority: str) -> float:
         """Store excess energy to the ESS or sell it to the MainGrid. Returns profit."""
         # TODO: Could be essentially what is now in energy_excess.py
+
+    def _get_next_state(self) -> State:
+        """Get new environment state for the agent."""
+        # TODO
