@@ -22,6 +22,9 @@ class TCLAggregator:
             energy -= tcl_energy_consumption
         return consumed_energy
 
+    def get_number_of_tcls(self) -> int:
+        return len(self._tcls)
+
     @staticmethod
     def _get_desired_tcl_action(tcl: TCL, energy_left: float) -> int:
         if tcl.nominal_power < energy_left:
