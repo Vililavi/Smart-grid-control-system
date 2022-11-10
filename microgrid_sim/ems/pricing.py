@@ -12,7 +12,7 @@ class PricingManager:
         # That is, this is not exactly the percentage threshold but rather a simplification of it.
         # With the parameters given in Table 1, this leads to a maximum daily over-price percentage of
         # about 4.56 %: Threshold = 4, cst = 1.5 and P_market = 5.48, so maximum average price of the
-        # day is P_avg = (4 * 1.5 + 5.48) / 24 = 5.73. Thus, the percentage over the market price
+        # day is P_avg = (4 * 1.5 + 24 * 5.48) / 24 = 5.73. Thus, the percentage over the market price
         # is (5.73 - 5.48) / 5.48 ~ 0.04562 ~ 4.56 %.
         #
         # Implementation of the actual percentage threshold could be done e.g. by
