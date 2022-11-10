@@ -13,20 +13,38 @@ from microgrid_sim.state import State
 
 
 @dataclass
-class Environment:
-    """Environment that the EMS agent interacts with, combining the environment together."""
-    prices_and_temps: ArrayLike  # TODO: Make a class for price counter tracking?
+class Components:
+    """Helper class for handling the components of the environment."""
     main_grid: MainGrid
     der: DER
     ess: ESS
     res_loads: list[PriceResponsiveLoad]
     tcl_aggregator: TCLAggregator = field(init=False)
     tcls: InitVar[list[TCL]]
+
+    def __post_init__(self, tcls: list[TCL]):
+        self.tcl_aggregator = TCLAggregator(tcls)
+
+    def get_component_states(self) -> tuple[float, float, float]:
+        """
+        Get states of the environment components.
+
+        :return: (tcl_soc, ess_soc, generated_energy)
+        """
+
+    def control(self, tcl_energy: float, price_level: int, deficiency_pro: str, excess_prio: str) -> float:
+        pass
+
+
+@dataclass
+class Environment:
+    """Environment that the EMS agent interacts with, combining the environment together."""
+    prices_and_temps: ArrayLike  # TODO: Make a class for price counter tracking?
+    components: Components
     _timestep_counter: count
     start_time_idx: InitVar[int]
 
-    def __post_init__(self, tcls: list[TCL], start_time_idx: int):
-        self.tcl_aggregator = TCLAggregator(tcls)
+    def __post_init__(self, start_time_idx: int):
         self._timestep_counter = count(start_time_idx)
 
     def tick(self, action: Action) -> tuple[float, State]:
@@ -65,5 +83,5 @@ class Environment:
         # TODO: Could be essentially what is now in energy_excess.py
 
     def _get_next_state(self) -> State:
-        """Get new environment state for the agent."""
+        """Collect and return new environment state for the agent."""
         # TODO
