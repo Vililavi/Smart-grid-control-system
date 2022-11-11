@@ -1,24 +1,14 @@
-from dataclasses import dataclass, field, InitVar
+from dataclasses import dataclass, InitVar
 from itertools import count
 from numpy.typing import ArrayLike
 
 from microgrid_sim.components.main_grid import MainGrid
 from microgrid_sim.components.der import DER
 from microgrid_sim.components.ess import ESS
-from microgrid_sim.components.price_responsive import PriceResponsiveLoad
-from microgrid_sim.components.tcl import TCL
+from microgrid_sim.components.households import HouseholdsManager
 from microgrid_sim.components.tcl_aggregator import TCLAggregator
 from microgrid_sim.action import Action
 from microgrid_sim.state import State
-
-
-# Based on Figure 13 in https://doi.org/10.1016/j.segan.2020.100413
-base_hourly_residential_loads = [
-    0.4, 0.3, 0.2, 0.2, 0.2, 0.2,
-    0.3, 0.5, 0.6, 0.6, 0.5, 0.5,
-    0.5, 0.4, 0.4, 0.6, 0.8, 1.4,
-    1.2, 0.9, 0.8, 0.6, 0.5, 0.4
-]
 
 
 @dataclass
@@ -27,19 +17,8 @@ class Components:
     main_grid: MainGrid
     der: DER
     ess: ESS
-    res_loads: list[PriceResponsiveLoad]
-    tcl_aggregator: TCLAggregator = field(init=False)
-    tcls: InitVar[list[TCL]]
-
-    def __post_init__(self, tcls: list[TCL]):
-        self.tcl_aggregator = TCLAggregator(tcls)
-
-    def get_residential_consumption(self, hour_of_day: int, price_level: int) -> float:
-        """Get accumulated energy consumption of all households in the microgrid."""
-        consumption = 0.0
-        for pr_load in self.res_loads:
-            consumption += pr_load.get_load(base_hourly_residential_loads[hour_of_day], price_level)
-        return consumption
+    households_manager: HouseholdsManager
+    tcl_aggregator: TCLAggregator
 
 
 @dataclass
@@ -90,16 +69,15 @@ class Environment:
         """Apply the choices of the agent and return reward."""
         base_price, out_temp = self.prices_and_temps[idx]
         tcl_cons = self.components.tcl_aggregator.allocate_energy(self._get_tcl_energy(tcl_action), out_temp)
-        res_cons = self.components.get_residential_consumption(self.components.der.get_hour_of_day(idx), price_level)
+        res_cons, res_profit = self.components.households_manager.get_consumption_and_profit(
+            self.components.der.get_hour_of_day(idx), price_level, idx)
         generated_energy = self.components.der.get_generated_energy(idx)
         excess = generated_energy - tcl_cons - res_cons
         if excess > 0:
             main_grid_returns = self._handle_excess_energy(excess, energy_excess_prio, idx)
         else:
             main_grid_returns = - self._cover_energy_deficiency(-excess, energy_deficiency_prio, idx)
-        return self._compute_reward(
-            tcl_cons, res_cons, base_price + price_level * self.price_interval, main_grid_returns
-        )
+        return self._compute_reward(tcl_cons, res_profit, main_grid_returns)
 
     def _cover_energy_deficiency(self, energy: float, priority: str, idx: int) -> float:
         """Cover energy deficiency from ESS and/or MainGrid. Returns cost."""
@@ -115,11 +93,9 @@ class Environment:
         ess_excess = self.components.ess.charge(energy)
         return self.components.main_grid.get_sold_profit(energy - ess_excess, idx)
 
-    def _compute_reward(
-        self, tcl_consumption: float, residential_consumption: float, price: float, main_grid_profit: float
-    ) -> float:
+    def _compute_reward(self, tcl_consumption: float, residential_profit: float, main_grid_profit: float) -> float:
         gen_cost = self.components.der.generation_cost
-        return tcl_consumption * gen_cost + residential_consumption * price + main_grid_profit
+        return tcl_consumption * gen_cost + residential_profit + main_grid_profit
 
     def _get_next_state(self) -> State:
         """Collect and return new environment state for the agent."""
