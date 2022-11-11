@@ -40,11 +40,12 @@ class Environment:
         Simulate one (next) timestep with the given control actions.
         Returns generated profit (reward) and the new state of the environment.
         """
-
+        # TODO: assert validity of the action
         idx = next(self._timestep_counter)
-        reward = self._apply_action(
-            # TODO: figure out the signature (dataclass object or separate values - ints vs floats and strings etc)
-        )
+        tcl_action, price_level = action[0], action[1]
+        def_prio = "ESS" if action[2] == 1 else "BUY"
+        excess_prio = "ESS" if action[3] == 1 else "SELL"
+        reward = self._apply_action(tcl_action, price_level, def_prio, excess_prio, idx)
         state = self._get_state(idx)
         return reward, state
 
@@ -54,7 +55,7 @@ class Environment:
         return max_cons * (tcl_action + 1) / 5
 
     def _apply_action(
-        self, tcl_action: int, price_level: int, energy_deficiency_prio: str, energy_excess_prio: str, idx: int
+        self, tcl_action: int, price_level: int, deficiency_prio: str, excess_prio: str, idx: int
     ) -> float:
         """Apply the choices of the agent and return reward."""
         base_price, out_temp = self.prices_and_temps[idx]
@@ -64,9 +65,9 @@ class Environment:
         generated_energy = self.components.der.get_generated_energy(idx)
         excess = generated_energy - tcl_cons - res_cons
         if excess > 0:
-            main_grid_returns = self._handle_excess_energy(excess, energy_excess_prio, idx)
+            main_grid_returns = self._handle_excess_energy(excess, excess_prio, idx)
         else:
-            main_grid_returns = - self._cover_energy_deficiency(-excess, energy_deficiency_prio, idx)
+            main_grid_returns = - self._cover_energy_deficiency(-excess, deficiency_prio, idx)
         return self._compute_reward(tcl_cons, res_profit, main_grid_returns)
 
     def _cover_energy_deficiency(self, energy: float, priority: str, idx: int) -> float:
