@@ -8,7 +8,6 @@ from microgrid_sim.components.der import DER
 from microgrid_sim.components.ess import ESS
 from microgrid_sim.components.households import HouseholdsManager
 from microgrid_sim.components.tcl_aggregator import TCLAggregator
-from microgrid_sim.action import Action
 
 
 @dataclass
@@ -36,7 +35,7 @@ class Environment:
     def __post_init__(self, start_time_idx: int):
         self._timestep_counter = count(start_time_idx)
 
-    def tick(self, action: Action) -> tuple[float, ArrayLike]:
+    def step(self, action: ArrayLike) -> tuple[float, ArrayLike]:
         """
         Simulate one (next) timestep with the given control actions.
         Returns generated profit (reward) and the new state of the environment.
