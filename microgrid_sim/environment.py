@@ -1,47 +1,24 @@
-from dataclasses import dataclass, InitVar
 from itertools import count
+from typing import Any
+
 import numpy as np
 from numpy.typing import ArrayLike
 
-from microgrid_sim.components.main_grid import MainGrid, MainGridParams
-from microgrid_sim.components.der import DER, DERParams
-from microgrid_sim.components.ess import ESS, ESSParams
-from microgrid_sim.components.households import HouseholdsManager, ResidentialLoadParams
-from microgrid_sim.components.tcl_aggregator import TCLAggregator, TCLParams
+from microgrid_sim.components.components import get_components_by_param_dicts
 
 
-@dataclass
-class Components:
-    """Helper class for handling the components of the environment."""
-    main_grid: MainGrid
-    der: DER
-    ess: ESS
-    households_manager: HouseholdsManager
-    tcl_aggregator: TCLAggregator
-
-    def get_hour_of_day(self, idx: int) -> int:
-        """Utility wrapper to simplify getting the hour of day."""
-        return self.der.get_hour_of_day(idx)
-
-    def get_outdoor_temperature(self, idx: int) -> float:
-        """Utility wrapper."""
-        return self.tcl_aggregator.get_outdoor_temperature(idx)
-
-
-def get_components(
-    tcl_params, ess_params, main_grid_params, der_params, residential_load_params, general_params
-) -> Components:
-    pass
-
-
-@dataclass
 class Environment:
     """Environment that the EMS agent interacts with, combining the environment together."""
-    components: Components
-    _timestep_counter: count
-    start_time_idx: InitVar[int]
 
-    def __post_init__(self, start_time_idx: int):
+    def __init__(self, params_dict: dict[str, dict[str, Any]], start_time_idx: int):
+        tcl_params = params_dict["tcl_params"]
+        ess_params = params_dict["ess_params"]
+        main_grid_params = params_dict["main_grid_params"]
+        der_params = params_dict["der_params"]
+        residential_params = params_dict["residential_params"]
+        self.components = get_components_by_param_dicts(
+            tcl_params, ess_params, main_grid_params, der_params, residential_params
+        )
         self._timestep_counter = count(start_time_idx)
 
     def step(self, action: ArrayLike) -> tuple[float, ArrayLike]:
