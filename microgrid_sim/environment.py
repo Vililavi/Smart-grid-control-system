@@ -25,7 +25,6 @@ class Components:
 class Environment:
     """Environment that the EMS agent interacts with, combining the environment together."""
     prices_and_temps: ArrayLike  # TODO: Make a class for price counter tracking?
-    price_interval: float
     components: Components
     _timestep_counter: count
     start_time_idx: InitVar[int]
@@ -99,4 +98,6 @@ class Environment:
 
     def _get_next_state(self) -> State:
         """Collect and return new environment state for the agent."""
-        # TODO
+        tcl_soc = self.components.tcl_aggregator.get_state_of_charge()
+        ess_soc = self.components.ess.soc
+
