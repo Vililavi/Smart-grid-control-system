@@ -1,4 +1,18 @@
 from dataclasses import dataclass, field
+from random import gauss
+
+
+@dataclass
+class ESSParams:
+    charge_efficiency: float = 0.9
+    discharge_efficiency: float = 0.9
+    max_charge: float = 250.0
+    max_discharge: float = 250.0
+    max_energy: float = 500.0
+
+    @classmethod
+    def from_dict(cls, ess_params_dict: dict[str, float]) -> "ESSParams":
+        return ESSParams(**ess_params_dict)
 
 
 @dataclass
@@ -18,6 +32,18 @@ class ESS:
         assert 0 < self._charge_efficiency <= 1
         assert 0 < self._discharge_efficiency <= 1
         self._update_state_of_charge()
+
+    @classmethod
+    def from_params(cls, params: ESSParams) -> "ESS":
+        energy = max(100.0, gauss(250.0, 100.0))
+        return ESS(
+            energy,
+            params.max_energy,
+            params.max_charge,
+            params.max_discharge,
+            params.charge_efficiency,
+            params.discharge_efficiency
+        )
 
     def _update_state_of_charge(self) -> None:
         assert self._max_energy > 0

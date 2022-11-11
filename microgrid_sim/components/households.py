@@ -1,14 +1,38 @@
+from dataclasses import dataclass, field
+from typing import Union
+from random import gauss
+
 from numpy.typing import ArrayLike
 from microgrid_sim.components.price_responsive import PriceResponsiveLoad
 
 
-# Based on Figure 13 in https://doi.org/10.1016/j.segan.2020.100413
-base_hourly_residential_loads = [
-    0.4, 0.3, 0.2, 0.2, 0.2, 0.2,
-    0.3, 0.5, 0.6, 0.6, 0.5, 0.5,
-    0.5, 0.4, 0.4, 0.6, 0.8, 1.4,
-    1.2, 0.9, 0.8, 0.6, 0.5, 0.4
-]
+def _get_default_base_hourly_loads() -> list[float]:
+    # Based on Figure 13 in https://doi.org/10.1016/j.segan.2020.100413
+    base_hourly_residential_loads = [
+        0.4, 0.3, 0.2, 0.2, 0.2, 0.2,
+        0.3, 0.5, 0.6, 0.6, 0.5, 0.5,
+        0.5, 0.4, 0.4, 0.6, 0.8, 1.4,
+        1.2, 0.9, 0.8, 0.6, 0.5, 0.4
+    ]
+    return base_hourly_residential_loads
+
+
+@dataclass
+class ResidentialLoadParams:
+    num_households: int
+    hourly_base_prices: ArrayLike
+    base_hourly_loads: list[float] = field(default_factory=lambda: _get_default_base_hourly_loads())
+    patience: tuple[int, int] = (10, 6)  # mean, standard deviation
+    sensitivity: tuple[float, float] = (0.4, 0.3)  # mean, standard deviation
+    price_interval: float = 1.5
+    over_pricing_threshold: int = 4
+
+    @classmethod
+    def from_dict(
+            cls, res_load_params_dict: dict[str, Union[int, float, list[float], tuple[int, int], tuple[float, float]]]
+    ) -> "ResidentialLoadParams":
+        num_households = res_load_params_dict.pop("num_households")
+        return ResidentialLoadParams(num_households, **res_load_params_dict)
 
 
 class PricingManager:
@@ -50,19 +74,38 @@ class HouseholdsManager:
         pr_loads: list[PriceResponsiveLoad],
         prices: ArrayLike,
         price_interval: float,
-        pricing_manager: PricingManager
+        pricing_manager: PricingManager,
+        base_hourly_loads: list[float]
      ):
         self._pr_loads = pr_loads
         self._prices = prices
         self._price_interval = price_interval
         self._pricing_manager = pricing_manager
+        self._base_loads = base_hourly_loads
+
+    @classmethod
+    def from_params(cls, params: ResidentialLoadParams) -> "HouseholdsManager":
+        price_resp_loads = []
+        for _ in range(params.num_households):
+            mean, std_dev = params.patience
+            patience = round(gauss(mean, std_dev))  # not quite exactly correct but shouldn't matter here
+            mean, std_dev = params.sensitivity
+            sensitivity = gauss(mean, std_dev)
+            price_resp_loads.append(PriceResponsiveLoad(sensitivity, patience))
+        pricing_manager = PricingManager(params.over_pricing_threshold)
+        return HouseholdsManager(
+            price_resp_loads,
+            params.hourly_base_prices,
+            params.price_interval,
+            pricing_manager,
+            params.base_hourly_loads,
+        )
 
     def get_pricing_counter(self) -> int:
         return self._pricing_manager.price_levels_sum
 
-    @staticmethod
-    def get_base_residential_load(hour_of_day: int) -> float:
-        return base_hourly_residential_loads[hour_of_day]
+    def get_base_residential_load(self, hour_of_day: int) -> float:
+        return self._base_loads[hour_of_day]
 
     def get_consumption_and_profit(self, hour_of_day: int, price_level: int, price_idx: int) -> tuple[float, float]:
         """
@@ -82,5 +125,5 @@ class HouseholdsManager:
         """Get accumulated energy consumption of all households in the microgrid."""
         consumption = 0.0
         for pr_load in self._pr_loads:
-            consumption += pr_load.get_load(base_hourly_residential_loads[hour_of_day], price_level)
+            consumption += pr_load.get_load(self._base_loads[hour_of_day], price_level)
         return consumption

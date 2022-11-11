@@ -3,11 +3,11 @@ from itertools import count
 import numpy as np
 from numpy.typing import ArrayLike
 
-from microgrid_sim.components.main_grid import MainGrid
-from microgrid_sim.components.der import DER
-from microgrid_sim.components.ess import ESS
-from microgrid_sim.components.households import HouseholdsManager
-from microgrid_sim.components.tcl_aggregator import TCLAggregator
+from microgrid_sim.components.main_grid import MainGrid, MainGridParams
+from microgrid_sim.components.der import DER, DERParams
+from microgrid_sim.components.ess import ESS, ESSParams
+from microgrid_sim.components.households import HouseholdsManager, ResidentialLoadParams
+from microgrid_sim.components.tcl_aggregator import TCLAggregator, TCLParams
 
 
 @dataclass
@@ -23,11 +23,20 @@ class Components:
         """Utility wrapper to simplify getting the hour of day."""
         return self.der.get_hour_of_day(idx)
 
+    def get_outdoor_temperature(self, idx: int) -> float:
+        """Utility wrapper."""
+        return self.tcl_aggregator.get_outdoor_temperature(idx)
+
+
+def get_components(
+    tcl_params, ess_params, main_grid_params, der_params, residential_load_params, general_params
+) -> Components:
+    pass
+
 
 @dataclass
 class Environment:
     """Environment that the EMS agent interacts with, combining the environment together."""
-    prices_and_temps: ArrayLike
     components: Components
     _timestep_counter: count
     start_time_idx: InitVar[int]
@@ -37,8 +46,9 @@ class Environment:
 
     def step(self, action: ArrayLike) -> tuple[float, ArrayLike]:
         """
-        Simulate one (next) timestep with the given control actions.
-        Returns generated profit (reward) and the new state of the environment.
+        Simulate one timestep with the given control actions.
+
+        Returns state of the environment and reward (generated profit).
         """
         # TODO: assert validity of the action
         idx = next(self._timestep_counter)
@@ -58,8 +68,7 @@ class Environment:
         self, tcl_action: int, price_level: int, deficiency_prio: str, excess_prio: str, idx: int
     ) -> float:
         """Apply the choices of the agent and return reward."""
-        base_price, out_temp = self.prices_and_temps[idx]
-        tcl_cons = self.components.tcl_aggregator.allocate_energy(self._get_tcl_energy(tcl_action), out_temp)
+        tcl_cons = self.components.tcl_aggregator.allocate_energy(self._get_tcl_energy(tcl_action), idx)
         res_cons, res_profit = self.components.households_manager.get_consumption_and_profit(
             self.components.get_hour_of_day(idx), price_level, idx)
         generated_energy = self.components.der.get_generated_energy(idx)
@@ -93,7 +102,7 @@ class Environment:
         tcl_soc = self.components.tcl_aggregator.get_state_of_charge()
         ess_soc = self.components.ess.soc
         pricing_counter = self.components.households_manager.get_pricing_counter()
-        _, out_temp = self.prices_and_temps[idx]
+        out_temp = self.components.get_outdoor_temperature(idx)
         generated_energy = self.components.der.get_generated_energy(idx)
         up_price = self.components.main_grid.get_up_price(idx)
         hour_of_day = self.components.get_hour_of_day(idx)
@@ -109,4 +118,4 @@ class Environment:
             base_res_load,
             float(hour_of_day)
         ]
-        return np.array(state_vector)
+        return np.array(state_vector, dtype=np.float32)

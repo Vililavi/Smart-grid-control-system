@@ -7,7 +7,6 @@ from math import copysign
 @dataclass
 class PriceResponsiveLoad:
     """Model for a price responsive load."""
-    load: float
     sensitivity: float
     patience: int
     _shifted_loads: dict[int, float] = field(init=False, default_factory=lambda: {})
@@ -25,8 +24,7 @@ class PriceResponsiveLoad:
         shifted_load_to_execute = self._get_shifted_load_to_execute(price_level, timestep)
         load_to_shift = base_load * self.sensitivity * price_level
         self._add_new_shifted_load(load_to_shift, timestep)
-        self.load = base_load - load_to_shift + shifted_load_to_execute
-        return self.load
+        return base_load - load_to_shift + shifted_load_to_execute
 
     def _get_shifted_load_to_execute(self, current_price_level: int, current_timestep: int) -> float:
         """Returns the shifted load to be executed in this time step."""

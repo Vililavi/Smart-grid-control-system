@@ -1,5 +1,18 @@
+from dataclasses import dataclass
+from typing import Union
 
 import pandas as pd
+
+
+@dataclass
+class DERParams:
+    hourly_generated_energies_file_path: str
+    generation_cost: float = 32.0
+
+    @classmethod
+    def from_dict(cls, der_params_dict: dict[str, Union[float, str]]) -> "DERParams":
+        generated_energies_file_path = der_params_dict.pop("hourly_generated_energies_file_path")
+        return DERParams(generated_energies_file_path, **der_params_dict)
 
 
 class DER:
@@ -8,9 +21,14 @@ class DER:
     This implementation simply reads data from the provided csv file and return it one value at a time
     when requested.
     """
-    def __init__(self, data_file: str, generation_cost: float):
-        self._data = pd.read_csv(data_file, delimiter=",")
+    def __init__(self, energy_generation_data: pd.DataFrame, generation_cost: float):
+        self._data = energy_generation_data
         self.generation_cost = generation_cost
+
+    @classmethod
+    def from_params(cls, params: DERParams) -> "DER":
+        data = pd.read_csv(params.hourly_generated_energies_file_path, delimiter=",")
+        return DER(data, params.generation_cost)
 
     def get_generated_energy(self, idx: int) -> float:
         return float(self._data.iloc[idx][-1])
@@ -26,4 +44,3 @@ class DER:
         date_str: str = self._data.iloc[idx][2]
         hour_str = date_str.split(" ")[1].split(":")[0]
         return int(hour_str)
-
