@@ -23,25 +23,25 @@ class ESS:
         assert self._max_energy > 0
         self.soc = self.energy / self._max_energy
 
-    def charge(self, power: float) -> float:
+    def charge(self, energy: float) -> float:
         """
         Charge the ESS with given power.
 
-        :param power: Charging power.
+        :param energy: Charging power.
         :return: Excess energy.
         """
-        return self.update(power, 0.0)
+        return self._update(energy, 0.0)
 
-    def discharge(self, power: float) -> float:
+    def discharge(self, energy: float) -> float:
         """
         Draw power from the ESS.
 
-        :param power: Requested power.
+        :param energy: Requested power.
         :return: Provided energy.
         """
-        return self.update(0.0, power)
+        return self._update(0.0, energy)
 
-    def update(self, charge_power: float, discharge_power: float) -> float:
+    def _update(self, charge_power: float, discharge_power: float) -> float:
         """
         Update the state of the ESS.
 
@@ -52,7 +52,7 @@ class ESS:
         charging = self._get_limited_charge_power(charge_power)
         discharging = self._get_limited_discharge_power(discharge_power)
 
-        self.energy = self.energy + self._charge_efficiency * charging - discharging / self._discharge_efficiency
+        self.energy += self._charge_efficiency * charging - discharging / self._discharge_efficiency
         self._update_state_of_charge()
         return discharging + charge_power - charging
 

@@ -94,20 +94,25 @@ class Environment:
         generated_energy = self.components.der.get_generated_energy(idx)
         excess = generated_energy - tcl_cons - res_cons
         if excess > 0:
-            main_grid_returns = self._handle_excess_energy(excess, energy_excess_prio)
+            main_grid_returns = self._handle_excess_energy(excess, energy_excess_prio, idx)
         else:
-            main_grid_returns = - self._cover_energy_deficiency(-excess, energy_deficiency_prio)
+            main_grid_returns = - self._cover_energy_deficiency(-excess, energy_deficiency_prio, idx)
         return self._compute_reward(
             tcl_cons, res_cons, base_price + price_level * self.price_interval, main_grid_returns
         )
 
-    def _cover_energy_deficiency(self, energy: float, priority: str) -> float:
+    def _cover_energy_deficiency(self, energy: float, priority: str, idx: int) -> float:
         """Cover energy deficiency from ESS and/or MainGrid. Returns cost."""
-        # TODO: Could be essentially what is now in energy_deficiency.py
+        if priority == "BUY":
+            return self.components.main_grid.get_bought_cost(energy, idx)
+        ess_energy = self.components.ess.discharge(energy)
+        return self.components.main_grid.get_bought_cost(energy - ess_energy, idx)
 
-    def _handle_excess_energy(self, energy: float, priority: str) -> float:
+    def _handle_excess_energy(self, energy: float, priority: str, idx: int) -> float:
         """Store excess energy to the ESS or sell it to the MainGrid. Returns profit."""
         # TODO: Could be essentially what is now in energy_excess.py
+        if priority == "SELL":
+            return 0
 
     def _compute_reward(
         self, tcl_consumption: float, residential_consumption: float, price: float, main_grid_profit: float
