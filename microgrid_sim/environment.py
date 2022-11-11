@@ -1,5 +1,6 @@
 from dataclasses import dataclass, InitVar
 from itertools import count
+import numpy as np
 from numpy.typing import ArrayLike
 
 from microgrid_sim.components.main_grid import MainGrid
@@ -8,7 +9,6 @@ from microgrid_sim.components.ess import ESS
 from microgrid_sim.components.households import HouseholdsManager
 from microgrid_sim.components.tcl_aggregator import TCLAggregator
 from microgrid_sim.action import Action
-from microgrid_sim.state import State
 
 
 @dataclass
@@ -20,11 +20,15 @@ class Components:
     households_manager: HouseholdsManager
     tcl_aggregator: TCLAggregator
 
+    def get_hour_of_day(self, idx: int) -> int:
+        """Utility wrapper to simplify getting the hour of day."""
+        return self.der.get_hour_of_day(idx)
+
 
 @dataclass
 class Environment:
     """Environment that the EMS agent interacts with, combining the environment together."""
-    prices_and_temps: ArrayLike  # TODO: Make a class for price counter tracking?
+    prices_and_temps: ArrayLike
     components: Components
     _timestep_counter: count
     start_time_idx: InitVar[int]
@@ -32,29 +36,17 @@ class Environment:
     def __post_init__(self, start_time_idx: int):
         self._timestep_counter = count(start_time_idx)
 
-    def tick(self, action: Action) -> tuple[float, State]:
+    def tick(self, action: Action) -> tuple[float, ArrayLike]:
         """
         Simulate one (next) timestep with the given control actions.
         Returns generated profit (reward) and the new state of the environment.
         """
-        # TODO:
-        #  - Apply action:
-        #    * control TCLs & get spent energy
-        #    * apply price level & get energy spent by residential loads
-        #    * compute energy excess/deficiency from generated and used energy amounts
-        #    * handle energy excess or deficiency
-        #  - Compute reward based on sold/purchased energy etc.
-        #  - Get next state:
-        #    * TCL & ESS states
-        #    * New temperature and base price level
-        #    * Generated energy & buying price
-        #    * Time of day and base residential load
 
         idx = next(self._timestep_counter)
         reward = self._apply_action(
             # TODO: figure out the signature (dataclass object or separate values - ints vs floats and strings etc)
         )
-        state = self._get_next_state()
+        state = self._get_state(idx)
         return reward, state
 
     def _get_tcl_energy(self, tcl_action: int) -> float:
@@ -69,7 +61,7 @@ class Environment:
         base_price, out_temp = self.prices_and_temps[idx]
         tcl_cons = self.components.tcl_aggregator.allocate_energy(self._get_tcl_energy(tcl_action), out_temp)
         res_cons, res_profit = self.components.households_manager.get_consumption_and_profit(
-            self.components.der.get_hour_of_day(idx), price_level, idx)
+            self.components.get_hour_of_day(idx), price_level, idx)
         generated_energy = self.components.der.get_generated_energy(idx)
         excess = generated_energy - tcl_cons - res_cons
         if excess > 0:
@@ -96,8 +88,25 @@ class Environment:
         gen_cost = self.components.der.generation_cost
         return tcl_consumption * gen_cost + residential_profit + main_grid_profit
 
-    def _get_next_state(self) -> State:
+    def _get_state(self, idx: int) -> ArrayLike:
         """Collect and return new environment state for the agent."""
         tcl_soc = self.components.tcl_aggregator.get_state_of_charge()
         ess_soc = self.components.ess.soc
+        pricing_counter = self.components.households_manager.get_pricing_counter()
+        _, out_temp = self.prices_and_temps[idx]
+        generated_energy = self.components.der.get_generated_energy(idx)
+        up_price = self.components.main_grid.get_up_price(idx)
+        hour_of_day = self.components.get_hour_of_day(idx)
+        base_res_load = self.components.households_manager.get_base_residential_load(hour_of_day)
 
+        state_vector = [
+            tcl_soc,
+            ess_soc,
+            float(pricing_counter),
+            out_temp,
+            generated_energy,
+            up_price,
+            base_res_load,
+            float(hour_of_day)
+        ]
+        return np.array(state_vector)

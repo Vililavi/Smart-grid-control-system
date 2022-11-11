@@ -60,6 +60,10 @@ class HouseholdsManager:
     def get_pricing_counter(self) -> int:
         return self._pricing_manager.price_levels_sum
 
+    @staticmethod
+    def get_base_residential_load(hour_of_day: int) -> float:
+        return base_hourly_residential_loads[hour_of_day]
+
     def get_consumption_and_profit(self, hour_of_day: int, price_level: int, price_idx: int) -> tuple[float, float]:
         """
         Returns the energy consumption of the households and the profit gained by selling said energy.
@@ -69,6 +73,7 @@ class HouseholdsManager:
         :param price_idx: Data index.
         :return: (consumed_energy, profit)
         """
+        price_level = self._pricing_manager.validate_price_level(price_level)
         consumption = self._get_residential_consumption(hour_of_day, price_level)
         price = self._prices[price_idx] + price_level * self._price_interval
         return consumption, price * consumption

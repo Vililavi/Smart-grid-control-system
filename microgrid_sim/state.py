@@ -6,7 +6,7 @@ class State:
     """Model for the microgrid state"""
     tcl_soc: float
     ess_soc: float
-    pricing_counter: float  # TODO: yet to be implemented
+    pricing_counter: float
     out_temperature: float
     generated_energy: float
     up_price: float
