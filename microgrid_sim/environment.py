@@ -110,9 +110,10 @@ class Environment:
 
     def _handle_excess_energy(self, energy: float, priority: str, idx: int) -> float:
         """Store excess energy to the ESS or sell it to the MainGrid. Returns profit."""
-        # TODO: Could be essentially what is now in energy_excess.py
         if priority == "SELL":
-            return 0
+            return self.components.main_grid.get_sold_profit(energy, idx)
+        ess_excess = self.components.ess.charge(energy)
+        return self.components.main_grid.get_sold_profit(energy - ess_excess, idx)
 
     def _compute_reward(
         self, tcl_consumption: float, residential_consumption: float, price: float, main_grid_profit: float
