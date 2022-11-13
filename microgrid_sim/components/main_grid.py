@@ -9,8 +9,8 @@ from pandas import DataFrame
 class MainGridParams:
     up_prices_file_path: str
     down_prices_file_path: str
-    import_transmission_price: float
-    export_transmission_price: float
+    import_transmission_price: float = 9.7
+    export_transmission_price: float = 0.9
 
     @classmethod
     def from_dict(cls, main_grid_params_dict: dict[str, Union[float, str]]) -> "MainGridParams":

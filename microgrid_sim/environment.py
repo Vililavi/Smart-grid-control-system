@@ -10,18 +10,23 @@ from microgrid_sim.components.components import get_components_by_param_dicts
 class Environment:
     """Environment that the EMS agent interacts with, combining the environment together."""
 
-    def __init__(self, params_dict: dict[str, dict[str, Any]], start_time_idx: int):
+    def __init__(self, params_dict: dict[str, dict[str, Any]], prices_and_temps_path: str, start_time_idx: int):
         tcl_params = params_dict["tcl_params"]
         ess_params = params_dict["ess_params"]
         main_grid_params = params_dict["main_grid_params"]
         der_params = params_dict["der_params"]
         residential_params = params_dict["residential_params"]
+
+        prices_and_temps = np.load(prices_and_temps_path)
+        residential_params["hourly_base_prices"] = prices_and_temps[:, 0]
+        tcl_params["out_temps"] = prices_and_temps[:, 1]
+
         self.components = get_components_by_param_dicts(
             tcl_params, ess_params, main_grid_params, der_params, residential_params
         )
         self._timestep_counter = count(start_time_idx)
 
-    def step(self, action: ArrayLike) -> tuple[float, ArrayLike]:
+    def step(self, action: ArrayLike) -> tuple[ArrayLike, float]:
         """
         Simulate one timestep with the given control actions.
 
@@ -29,12 +34,12 @@ class Environment:
         """
         # TODO: assert validity of the action
         idx = next(self._timestep_counter)
-        tcl_action, price_level = action[0], action[1]
+        tcl_action, price_level = action[0], action[1] - 2
         def_prio = "ESS" if action[2] == 1 else "BUY"
         excess_prio = "ESS" if action[3] == 1 else "SELL"
         reward = self._apply_action(tcl_action, price_level, def_prio, excess_prio, idx)
         state = self._get_state(idx)
-        return reward, state
+        return state, reward
 
     def _get_tcl_energy(self, tcl_action: int) -> float:
         """Returns energy amount from options {20%, 40%, 60%, 80%} of the max consumption."""

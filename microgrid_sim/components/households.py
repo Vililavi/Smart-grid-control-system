@@ -32,7 +32,8 @@ class ResidentialLoadParams:
             cls, res_load_params_dict: dict[str, Union[int, float, list[float], tuple[int, int], tuple[float, float]]]
     ) -> "ResidentialLoadParams":
         num_households = res_load_params_dict.pop("num_households")
-        return ResidentialLoadParams(num_households, **res_load_params_dict)
+        hourly_base_prices = res_load_params_dict.pop("hourly_base_prices")
+        return ResidentialLoadParams(num_households, hourly_base_prices, **res_load_params_dict)
 
 
 class PricingManager:
