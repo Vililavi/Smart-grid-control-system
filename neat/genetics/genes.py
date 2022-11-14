@@ -47,3 +47,9 @@ class ConnectionGene:
             enabled = False
 
         return ConnectionGene(self.node_in_idx, self.node_out_idx, weight, enabled, self.innovation_num)
+
+    @staticmethod
+    def distance(conn_1: "ConnectionGene", conn_2: "ConnectionGene") -> float:
+        """Computes the distance of two ConnectionGenes"""
+        assert conn_1.innovation_num == conn_2.innovation_num
+        return abs(conn_1.weight - conn_2.weight)
