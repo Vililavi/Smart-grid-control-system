@@ -58,7 +58,7 @@ class TestMicrogridEnvironment(unittest.TestCase):
 
         env = Environment(params, prices_and_temps_path, 25)
 
-        action = np.array([3, 4, 1, 1])
+        action = (3, 4, 1, 1)
         state, reward = env.step(action)
         print(f"state vector: {state}")
         print(f"    TCL SoC:               {state[0]}")
