@@ -1,14 +1,38 @@
+from dataclasses import dataclass
+from typing import Union
+
 import pandas as pd
+from pandas import DataFrame
+
+
+@dataclass
+class MainGridParams:
+    up_prices_file_path: str
+    down_prices_file_path: str
+    import_transmission_price: float = 9.7
+    export_transmission_price: float = 0.9
+
+    @classmethod
+    def from_dict(cls, main_grid_params_dict: dict[str, Union[float, str]]) -> "MainGridParams":
+        up_prices_file_path = main_grid_params_dict.pop("up_prices_file_path")
+        down_prices_file_path = main_grid_params_dict.pop("down_prices_file_path")
+        return MainGridParams(up_prices_file_path, down_prices_file_path, **main_grid_params_dict)
 
 
 class MainGrid:
     """Model for the main electricity grid."""
 
-    def __init__(self, up_prices_file: str, down_prices_file: str, imp_trans_cost: float, exp_trans_cost: float):
-        self._up_prices = pd.read_csv(up_prices_file, delimiter=",")
-        self._down_prices = pd.read_csv(down_prices_file, delimiter=",")
+    def __init__(self, up_prices: DataFrame, down_prices: DataFrame, imp_trans_cost: float, exp_trans_cost: float):
+        self._up_prices = up_prices
+        self._down_prices = down_prices
         self.imp_transmission_cost = imp_trans_cost
         self.exp_transmission_cost = exp_trans_cost
+
+    @classmethod
+    def from_params(cls, params: MainGridParams) -> "MainGrid":
+        up_prices = pd.read_csv(params.up_prices_file_path, delimiter=",")
+        down_prices = pd.read_csv(params.down_prices_file_path, delimiter=",")
+        return MainGrid(up_prices, down_prices, params.import_transmission_price, params.export_transmission_price)
 
     def get_prices(self, idx: int) -> tuple[float, float]:
         """
