@@ -21,6 +21,7 @@ class NodeGene:
     """Gene representation of a node of a neural network."""
     idx: int
     node_type: NodeType
+    bias: float
 
 
 @dataclass
