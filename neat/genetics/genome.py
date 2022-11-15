@@ -17,7 +17,8 @@ class Innovations:
 class Genome:
     """Genetic representation of a neural network."""
     key: int
-    non_input_keys: list[int]
+    inputs: dict[int, NodeGene]
+    output_keys: list[int]
     nodes: dict[int, NodeGene]  # Nodes chromosome
     connections: dict[(int, int), ConnectionGene]  # Connections chromosome
     conns_by_innovation: dict[int, ConnectionGene] = field(init=False)
@@ -30,20 +31,21 @@ class Genome:
 
     @classmethod
     def create_new(
-        cls, key: int, num_inputs: int, num_outputs: int, node_start: int = 1, conn_start: int = 1
+        cls, key: int, num_inputs: int, num_outputs: int, node_start: int = 0, conn_start: int = 1
     ) -> "Genome":
         """Create a new Genome with random weights and without hidden nodes."""
-        non_input_keys = [num_inputs + i for i in range(num_outputs)]
+        output_keys = [i for i in range(node_start + num_inputs, node_start + num_inputs + num_outputs)]
+        inputs = {}
         nodes = {}
         connections = {}
         for i in range(num_inputs):
-            nodes[node_start + i] = NodeGene(i, NodeType.SENSOR)
+            inputs[node_start + i] = NodeGene(i, NodeType.SENSOR)
             for j in range(num_outputs):
                 c_key = (i, j)
                 connections[c_key] = ConnectionGene(i, num_inputs + j, 2 * random() - 1, True, conn_start + i * j)
         for i in range(num_outputs):
             nodes[node_start + num_inputs + i] = NodeGene(node_start + num_inputs + i, NodeType.OUTPUT)
-        return Genome(key, non_input_keys, nodes, connections)
+        return Genome(key, inputs, output_keys, nodes, connections)
 
     @classmethod
     def from_crossover(cls, key: int, genome_1: "Genome", genome_2: "Genome", keep_disable_prob: float) -> "Genome":
@@ -54,7 +56,7 @@ class Genome:
             parent_1, parent_2 = genome_2, genome_1
 
         connections = Genome._get_inherited_connections(parent_1, parent_2, keep_disable_prob)
-        return Genome(key, parent_1.non_input_keys, parent_1.nodes, connections)
+        return Genome(key, parent_1.inputs, parent_1.output_keys, parent_1.nodes, connections)
 
     @staticmethod
     def _get_inherited_connections(
@@ -106,21 +108,23 @@ class Genome:
             new_node_idx = next(node_counter)
             inns_in_curr_gen.split_connections[key] = new_node_idx
         self.nodes[new_node_idx] = NodeGene(new_node_idx, NodeType.HIDDEN)
-        self.non_input_keys.append(new_node_idx)
         return new_node_idx
 
     def _mutate_add_connection(
         self, conn_counter: count, inns_in_curr_gen: Innovations
     ) -> Optional[ConnectionGene]:
         """Mutates this genome by adding a new connection."""
-        in_key = choice(list(self.nodes.keys()))
-        out_key = choice(self.non_input_keys)
+        possible_inputs = list(self.nodes.keys())
+        possible_inputs.extend(list(self.inputs.keys()))
+        in_key = choice(possible_inputs)
+        out_key = choice(list(self.nodes.keys()))
         key = (in_key, out_key)
         if key in self.connections:
             self.connections[key].enabled = True
             return
-        if self.nodes[in_key].node_type == NodeType.OUTPUT and self.nodes[out_key].node_type == NodeType.OUTPUT:
-            return
+        if in_key not in self.inputs:
+            if self.nodes[in_key].node_type == NodeType.OUTPUT and self.nodes[out_key].node_type == NodeType.OUTPUT:
+                return
         return self._add_connection(in_key, out_key, 2 * random() - 1, True, conn_counter, inns_in_curr_gen)
 
     def _add_connection(
