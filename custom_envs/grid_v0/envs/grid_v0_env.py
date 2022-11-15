@@ -33,16 +33,18 @@ class GridV0Env(gym.Env[np.ndarray, Union[int, np.ndarray]]):
     spec = EnvSpec(
         id='Grid-v0',
         entry_point='grid_v0.envs:GridV0Env',
-        max_episode_steps=24 * 100,
+        max_episode_steps=24,
     )
 
-    def __init__(self, render_mode: Optional[str] = None):
+    def __init__(self, max_total_steps: int):
         """
         Alustus environmentille. Tähän tilaan palataan resetillä.
         """
-        project_dir = os.path.dirname(os.path.dirname(os.getcwd()))
-        self._data_path = os.path.join(project_dir, "data")  # when running from top of repo, replace if needed
-        start_idx = randint(0, 14600 - self.spec.max_episode_steps)
+        self._max_total_steps = max_total_steps
+
+        project_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+        self._data_path = os.path.join(project_dir, "data")
+        start_idx = randint(0, 14600 - self._max_total_steps)
         self._env = get_default_microgrid_env(self._data_path, start_idx)
         self.state = None
         self._step = 0
@@ -123,7 +125,7 @@ class GridV0Env(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         """
         super().reset(seed=seed)
 
-        start_idx = randint(0, 14600 - self.spec.max_episode_steps)
+        start_idx = randint(0, 14600 - self._max_total_steps)
         self._env = get_default_microgrid_env(self._data_path, start_idx)
         self.state = None
         self._step = 0
