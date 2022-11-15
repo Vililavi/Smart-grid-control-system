@@ -90,6 +90,7 @@ class HouseholdsManager:
         for _ in range(params.num_households):
             mean, std_dev = params.patience
             patience = round(gauss(mean, std_dev))  # not quite exactly correct but shouldn't matter here
+            patience = max(1, patience)
             mean, std_dev = params.sensitivity
             sensitivity = gauss(mean, std_dev)
             price_resp_loads.append(PriceResponsiveLoad(sensitivity, patience))

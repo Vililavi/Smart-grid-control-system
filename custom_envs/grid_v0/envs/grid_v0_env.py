@@ -40,7 +40,8 @@ class GridV0Env(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         """
         Alustus environmentille. Tähän tilaan palataan resetillä.
         """
-        self._data_path = os.path.join(os.getcwd(), "data")  # when running from top of repo, replace if needed
+        project_dir = os.path.dirname(os.path.dirname(os.getcwd()))
+        self._data_path = os.path.join(project_dir, "data")  # when running from top of repo, replace if needed
         start_idx = randint(0, 14600 - self.spec.max_episode_steps)
         self._env = get_default_microgrid_env(self._data_path, start_idx)
         self.state = None
