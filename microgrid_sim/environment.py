@@ -61,6 +61,8 @@ def get_default_microgrid_params(path_to_data: str) -> dict[str, dict[str, Any]]
 class Environment:
     """Environment that the EMS agent interacts with, combining the components together."""
 
+    __slots__ = ("components", "_timestep_counter", "_idx")
+
     def __init__(self, params_dict: dict[str, dict[str, Any]], prices_and_temps_path: str, start_time_idx: int):
         tcl_params = params_dict["tcl_params"]
         ess_params = params_dict["ess_params"]

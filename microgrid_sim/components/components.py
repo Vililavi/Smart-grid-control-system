@@ -14,7 +14,7 @@ from microgrid_sim.components.from_dict_factories import (
 )
 
 
-@dataclass
+@dataclass(slots=True)
 class Components:
     """Helper class for handling the components of the environment."""
     main_grid: MainGrid

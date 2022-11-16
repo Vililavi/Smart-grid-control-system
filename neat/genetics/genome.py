@@ -6,7 +6,7 @@ from typing import Tuple, Optional
 from neat.genetics.genes import NodeGene, ConnectionGene, NodeType
 
 
-@dataclass
+@dataclass(slots=True)
 class WeightOptions:
     init_mean: float
     init_stdev: float
@@ -23,7 +23,7 @@ class WeightOptions:
         return min(self.max_val, max(self.min_val, new_val))
 
 
-@dataclass
+@dataclass(slots=True)
 class MutationParams:
     add_node_prob: float
     add_connection_prob: float
@@ -35,14 +35,14 @@ class MutationParams:
     bias_options: WeightOptions
 
 
-@dataclass
+@dataclass(slots=True)
 class Innovations:
     """Used to track the innovations of the current generation during reproduction (mutation) process."""
     split_connections: dict[tuple[int, int], int] = field(init=False, default_factory=lambda: {})
     added_connections: dict[tuple[int, int], int] = field(init=False, default_factory=lambda: {})
 
 
-@dataclass
+@dataclass(slots=True)
 class Genome:
     """Genetic representation of a neural network."""
     key: int

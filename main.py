@@ -1,4 +1,6 @@
 from math import inf
+from multiprocessing import Pool
+import time
 
 import gym
 import numpy as np
@@ -51,16 +53,32 @@ def evaluate_network(network: RecurrentNetwork) -> float:
             ep_reward += reward
             state = next_state
 
-        print(f"Episode: {episode}, Step count: {step_count}, Episode reward: {ep_reward}")
+        # print(f"Episode: {episode}, Step count: {step_count}, Episode reward: {ep_reward}")
         total_reward += ep_reward
     return total_reward
 
 
+def evaluate_genome(idx_genome: tuple[int, Genome]) -> tuple[int, float]:
+    idx, genome = idx_genome
+    nn = RecurrentNetwork.create(genome)
+    reward = evaluate_network(nn)
+    genome.fitness = reward
+    return idx, reward
+
+
 def neat_fitness_function(genomes: list[tuple[int, Genome]]) -> None:
-    for (_, genome) in genomes:
-        nn = RecurrentNetwork.create(genome)
-        reward = evaluate_network(nn)
-        genome.fitness = reward
+    with Pool() as pool:
+        results = pool.map(evaluate_genome, genomes)
+
+        for (idx_1, genome), (idx_2, fitness) in zip(genomes, results):
+            assert idx_1 == idx_2, "Genomes or their order changed!"
+            genome.fitness = fitness
+        best_idx, fitness = max(results, key=lambda x: x[1])
+        print(f"best genome: {best_idx}, fitness: {fitness}")
+    # for (_, genome) in genomes:
+    #     nn = RecurrentNetwork.create(genome)
+    #     reward = evaluate_network(nn)
+    #     genome.fitness = reward
 
 
 def main():
@@ -97,7 +115,11 @@ def main():
         bias_max_val=10.0,
     )
     evolution = Evolution(8, 4, neat_config, species_fitness_function)
-    evolution.run(neat_fitness_function, fitness_goal=1e9, n=10)
+    start_t = time.perf_counter()
+    winning_genome = evolution.run(neat_fitness_function, fitness_goal=1e9, n=10)
+    end_t = time.perf_counter()
+    print(f"\nWinning genome: {winning_genome}\nFitness: {winning_genome.fitness}")
+    print(f"total run time: {(end_t - start_t):.2f} seconds")
 
 
 if __name__ == "__main__":

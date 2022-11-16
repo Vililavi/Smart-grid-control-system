@@ -4,7 +4,7 @@ from random import random
 from math import copysign
 
 
-@dataclass
+@dataclass(slots=True)
 class PriceResponsiveLoad:
     """Model for a price responsive load."""
     sensitivity: float

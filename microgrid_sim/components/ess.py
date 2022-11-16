@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from random import gauss
 
 
-@dataclass
+@dataclass(slots=True)
 class ESSParams:
     charge_efficiency: float = 0.9
     discharge_efficiency: float = 0.9
@@ -15,7 +15,7 @@ class ESSParams:
         return ESSParams(**ess_params_dict)
 
 
-@dataclass
+@dataclass(slots=True)
 class ESS:
     """Model for an Energy Storage System (ESS) e.g. a battery"""
     energy: float

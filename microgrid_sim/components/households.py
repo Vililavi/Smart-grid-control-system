@@ -17,7 +17,7 @@ def _get_default_base_hourly_loads() -> list[float]:
     return base_hourly_residential_loads
 
 
-@dataclass
+@dataclass(slots=True)
 class ResidentialLoadParams:
     num_households: int
     hourly_base_prices: ArrayLike
@@ -38,6 +38,8 @@ class ResidentialLoadParams:
 
 class PricingManager:
     """Keeps track of energy prices and validates the agent's price-level decisions."""
+
+    __slots__ = ("_over_pricing_threshold", "price_levels_sum")
 
     def __init__(self, over_pricing_threshold: int = 4):
         self._over_pricing_threshold = over_pricing_threshold
@@ -69,6 +71,8 @@ class HouseholdsManager:
     Helper class for handling households (PriceResponsiveLoads) in the microgrid.
     Also handles the prices of energy for households.
     """
+
+    __slots__ = ("_pr_loads", "_prices", "_price_interval", "_pricing_manager", "_base_loads")
 
     def __init__(
         self,

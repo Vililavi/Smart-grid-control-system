@@ -4,7 +4,7 @@ from typing import Union
 import pandas as pd
 
 
-@dataclass
+@dataclass(slots=True)
 class DERParams:
     hourly_generated_energies_file_path: str
     generation_cost: float = 32.0
@@ -21,6 +21,8 @@ class DER:
     This implementation simply reads data from the provided csv file and return it one value at a time
     when requested.
     """
+    __slots__ = ("_data", "generation_cost")
+
     def __init__(self, energy_generation_data: pd.DataFrame, generation_cost: float):
         self._data = energy_generation_data
         self.generation_cost = generation_cost

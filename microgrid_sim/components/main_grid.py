@@ -5,7 +5,7 @@ import pandas as pd
 from pandas import DataFrame
 
 
-@dataclass
+@dataclass(slots=True)
 class MainGridParams:
     up_prices_file_path: str
     down_prices_file_path: str
@@ -21,6 +21,8 @@ class MainGridParams:
 
 class MainGrid:
     """Model for the main electricity grid."""
+
+    __slots__ = ("_up_prices", "_down_prices", "imp_transmission_cost", "exp_transmission_cost")
 
     def __init__(self, up_prices: DataFrame, down_prices: DataFrame, imp_trans_cost: float, exp_trans_cost: float):
         self._up_prices = up_prices

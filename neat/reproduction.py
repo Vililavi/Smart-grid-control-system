@@ -11,6 +11,19 @@ from neat.genetics.species import SpeciesSet, Species
 
 class Reproduction:
     """Handles NEAT reproduction (creation of new genomes), including mutation of genomes."""
+    __slots__ = (
+        "num_inputs",
+        "num_outputs",
+        "neat_params",
+        "_weight_options",
+        "_bias_options",
+        "_mutate_params",
+        "species_fitness_function",
+        "genome_indexer",
+        "node_counter",
+        "conn_counter",
+        "ancestors",
+    )
 
     def __init__(
         self,

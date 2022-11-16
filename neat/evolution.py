@@ -10,6 +10,7 @@ from neat.reproduction import Reproduction
 
 class Evolution:
     """Tracks the evolution of a population of species and genomes."""
+    __slots__ = ("_neat_params", "generation", "population", "reproduction", "species_set", "best_genome")
 
     def __init__(
         self,

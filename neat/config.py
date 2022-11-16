@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 
-@dataclass
+@dataclass(slots=True)
 class NeatParams:
     """Dataclass for storing NEAT-specific parameters."""
     population_size: int

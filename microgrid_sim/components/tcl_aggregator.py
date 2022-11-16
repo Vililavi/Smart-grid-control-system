@@ -7,7 +7,7 @@ from numpy.typing import ArrayLike
 from microgrid_sim.components.tcl import TCL, TCLTemperatureModel, BackupController
 
 
-@dataclass
+@dataclass(slots=True)
 class TCLParams:
     num_tcls: int
     out_temperatures: ArrayLike
@@ -25,7 +25,7 @@ class TCLParams:
         return TCLParams(num_tcls, out_temps, **tcl_params_dict)
 
 
-@dataclass
+@dataclass(slots=True)
 class TCLAggregator:
     """TCL-aggregator agent that controls division of power amongst a cluster of TCLs."""
     _tcls: list[TCL]
