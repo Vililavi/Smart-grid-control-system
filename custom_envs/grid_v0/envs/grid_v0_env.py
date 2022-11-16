@@ -81,7 +81,7 @@ class GridV0Env(gym.Env[np.ndarray, Union[int, np.ndarray]]):
                 spaces.Discrete(24),                                       # hour of day
             ]
         )
-        self.action_space = spaces.MultiDiscrete([3, 4, 2, 2])
+        self.action_space = spaces.MultiDiscrete([4, 5, 2, 2])
 
         # TODO: Do we want
         #  - narrower/adjusted reward range than (-ifnty, infty)?
