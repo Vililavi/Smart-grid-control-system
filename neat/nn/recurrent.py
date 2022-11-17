@@ -73,7 +73,7 @@ class RecurrentNetwork(object):
         self.values = [dict((k, 0.0) for k in v) for v in self.values]
         self.active = 0
 
-    def activate(self, inputs: list[float]):
+    def activate(self, inputs: list[float]) -> list[float]:
         if len(self.input_nodes) != len(inputs):
             raise RuntimeError("Expected {0:n} inputs, got {1:n}".format(len(self.input_nodes), len(inputs)))
 

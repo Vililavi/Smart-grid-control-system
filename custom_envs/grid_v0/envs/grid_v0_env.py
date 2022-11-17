@@ -53,7 +53,7 @@ class GridV0Env(gym.Env[np.ndarray, Union[int, np.ndarray]]):
             [
                 0.0,                       # TCL SoC
                 0.0,                       # ESS SoC
-                np.finfo(np.float32).min,  # out temperature
+                -22.0,  # out temperature
                 0.0,                       # generated energy
                 0.0,                       # up price
                 0.0,                       # base residential load
@@ -64,10 +64,10 @@ class GridV0Env(gym.Env[np.ndarray, Union[int, np.ndarray]]):
             [
                 1.0,                       # TCL SoC
                 1.0,                       # ESS SoC
-                np.finfo(np.float32).max,  # out temperature
-                np.finfo(np.float32).max,  # generated energy
-                np.finfo(np.float32).max,  # up price
-                np.finfo(np.float32).max,  # base residential load (max 1.4 by default)
+                32.0,  # out temperature
+                1800.0,  # generated energy
+                2999.0,  # up price
+                1.4,  # base residential load (max 1.4 by default)
             ]
             ,
             dtype=np.float32,
@@ -82,9 +82,6 @@ class GridV0Env(gym.Env[np.ndarray, Union[int, np.ndarray]]):
             ]
         )
         self.action_space = spaces.MultiDiscrete([4, 5, 2, 2])
-
-        # TODO: Do we want
-        #  - narrower/adjusted reward range than (-ifnty, infty)?
 
     def step(self, action: spaces.MultiDiscrete):
         """

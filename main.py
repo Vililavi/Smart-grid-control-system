@@ -4,6 +4,7 @@ import time
 
 import gym
 import numpy as np
+from numpy.typing import ArrayLike
 
 import custom_envs.grid_v0
 
@@ -32,22 +33,9 @@ def evaluate_network(network: RecurrentNetwork) -> float:
         state, _info = env.reset()
 
         while not terminated:
-            floats, price_counter, hour = state
-            state_list = list(floats)
-            state_list.extend([float(price_counter), float(hour)])
+            state_list = _state_to_network_input(state)
             nn_output = network.activate(state_list)
-
-            max_idx = 0
-            max_val = -inf
-            for i, val in enumerate(nn_output):
-                if val > max_val:
-                    max_val = val
-                    max_idx = i
-            tcl_action = max_idx % 20
-            price_level = (max_idx - tcl_action * 20) % 4
-            def_action = (max_idx - tcl_action * 20 - price_level * 4) % 2
-            exc_action = (max_idx - tcl_action * 20 - price_level * 4 - def_action * 2) % 2
-            action = np.array([tcl_action, price_level, def_action, exc_action], dtype=np.int64)
+            action = _network_output_to_action(nn_output)
 
             next_state, reward, terminated, _, _info = env.step(action)
             env.render()
@@ -55,9 +43,37 @@ def evaluate_network(network: RecurrentNetwork) -> float:
             ep_reward += reward
             state = next_state
 
-        # print(f"Episode: {episode}, Step count: {step_count}, Episode reward: {ep_reward}")
         total_reward += ep_reward / num_days
     return total_reward / num_episodes
+
+
+def _state_to_network_input(state: tuple[ArrayLike, int, int]) -> list[float]:
+    floats, price_counter, hour = state
+    state_list = list(floats)
+    state_list.extend([float(price_counter), float(hour)])
+
+    # Normalize to [-1, 1]
+    state_list[2] = (state_list[2] - 5.0) / 27.0
+    state_list[3] = (state_list[3] - 900.0) / 900.0
+    state_list[4] = (state_list[4] - 2999.0) / 2999.0
+    state_list[5] = (state_list[5] - 0.7) / 0.7
+
+    return state_list
+
+
+def _network_output_to_action(nn_output: list[float]) -> ArrayLike:
+    max_idx = 0
+    max_val = -inf
+    for i, val in enumerate(nn_output):
+        if val > max_val:
+            max_val = val
+            max_idx = i
+    tcl_action = max_idx // 20
+    price_level = (max_idx - tcl_action * 20) // 5
+    def_action = (max_idx - tcl_action * 20 - price_level * 4) // 2
+    exc_action = (max_idx - tcl_action * 20 - price_level * 4) % 2
+    action = np.array([tcl_action, price_level, def_action, exc_action], dtype=np.int64)
+    return action
 
 
 def evaluate_genome(idx_genome: tuple[int, Genome]) -> tuple[int, float]:
@@ -114,7 +130,7 @@ def main():
     )
     evolution = Evolution(8, 4, neat_config, species_fitness_function)
     start_t = time.perf_counter()
-    winning_genome = evolution.run(neat_fitness_function, fitness_goal=1e9, n=20)
+    winning_genome = evolution.run(neat_fitness_function, fitness_goal=10.0, n=50)
     end_t = time.perf_counter()
     print(f"\nWinning genome: {winning_genome}\nFitness: {winning_genome.fitness}")
     print(f"total run time: {(end_t - start_t):.2f} seconds")
