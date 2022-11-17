@@ -19,12 +19,13 @@ def species_fitness_function(species_fitnesses: list[float]) -> float:
 
 
 def evaluate_network(network: RecurrentNetwork) -> float:
-    env = gym.make("Grid-v0", max_total_steps=24 * 100)
+    num_days = 100
+    env = gym.make("Grid-v0", max_total_steps=24 * num_days)
 
-    max_episodes = 10
+    num_episodes = 10
     total_reward = 0.0
 
-    for episode in range(max_episodes):
+    for episode in range(num_episodes):
         step_count = 0
         ep_reward = 0
         terminated = False
@@ -55,8 +56,8 @@ def evaluate_network(network: RecurrentNetwork) -> float:
             state = next_state
 
         # print(f"Episode: {episode}, Step count: {step_count}, Episode reward: {ep_reward}")
-        total_reward += ep_reward
-    return total_reward
+        total_reward += ep_reward / num_days
+    return total_reward / num_episodes
 
 
 def evaluate_genome(idx_genome: tuple[int, Genome]) -> tuple[int, float]:
@@ -82,10 +83,10 @@ def main():
     neat_config = NeatParams(
         population_size=20,
 
-        repro_survival_rate=0.1,
+        repro_survival_rate=0.1,    # What percentage of species' top members are used for reproduction
         min_species_size=2,
         max_stagnation=5,
-        num_surviving_elite_species=3,
+        num_surviving_elite_species=3,  # Minimum number of species to be retained
 
         compatibility_threshold=0.3,
         disjoint_coefficient=1.0,
@@ -113,7 +114,7 @@ def main():
     )
     evolution = Evolution(8, 4, neat_config, species_fitness_function)
     start_t = time.perf_counter()
-    winning_genome = evolution.run(neat_fitness_function, fitness_goal=1e9, n=50)
+    winning_genome = evolution.run(neat_fitness_function, fitness_goal=1e9, n=20)
     end_t = time.perf_counter()
     print(f"\nWinning genome: {winning_genome}\nFitness: {winning_genome.fitness}")
     print(f"total run time: {(end_t - start_t):.2f} seconds")
