@@ -106,7 +106,7 @@ def main():
 
         compatibility_threshold=0.5,
         disjoint_coefficient=1.0,
-        weight_coefficient=0.2,
+        weight_coefficient=0.22,
         keep_disabled_probability=0.5,
 
         node_mutation_probability=0.2,
