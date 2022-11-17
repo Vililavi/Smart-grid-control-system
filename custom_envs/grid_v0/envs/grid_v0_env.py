@@ -51,23 +51,23 @@ class GridV0Env(gym.Env[np.ndarray, Union[int, np.ndarray]]):
 
         low = np.array(
             [
-                0.0,                       # TCL SoC
-                0.0,                       # ESS SoC
+                0.0,    # TCL SoC
+                0.0,    # ESS SoC
                 -22.0,  # out temperature
-                0.0,                       # generated energy
-                0.0,                       # up price
-                0.0,                       # base residential load
+                0.0,    # generated energy
+                0.0,    # up price
+                0.0,    # base residential load
             ],
             dtype=np.float32,
         )
         high = np.array(
             [
-                1.0,                       # TCL SoC
-                1.0,                       # ESS SoC
-                32.0,  # out temperature
+                1.0,     # TCL SoC
+                1.0,     # ESS SoC
+                32.0,    # out temperature
                 1800.0,  # generated energy
                 2999.0,  # up price
-                1.4,  # base residential load (max 1.4 by default)
+                1.4,     # base residential load (max 1.4 by default)
             ]
             ,
             dtype=np.float32,
@@ -129,8 +129,6 @@ class GridV0Env(gym.Env[np.ndarray, Union[int, np.ndarray]]):
 
         self.state = self._env.get_state()
 
-        # if self.render_mode == "human":
-        #     self.render()
         return (np.array(self.state[:6], dtype=np.float32), self.state[6], self.state[7]), {}
 
     def render(self):

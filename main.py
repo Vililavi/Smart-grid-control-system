@@ -20,10 +20,10 @@ def species_fitness_function(species_fitnesses: list[float]) -> float:
 
 
 def evaluate_network(network: RecurrentNetwork) -> float:
-    num_days = 100
+    num_days = 365
     env = gym.make("Grid-v0", max_total_steps=24 * num_days)
 
-    num_episodes = 10
+    num_episodes = 2
     total_reward = 0.0
 
     for episode in range(num_episodes):
@@ -52,11 +52,11 @@ def _state_to_network_input(state: tuple[ArrayLike, int, int]) -> list[float]:
     state_list = list(floats)
     state_list.extend([float(price_counter), float(hour)])
 
-    # Normalize to [-1, 1]
-    state_list[2] = (state_list[2] - 5.0) / 27.0
-    state_list[3] = (state_list[3] - 900.0) / 900.0
-    state_list[4] = (state_list[4] - 2999.0) / 2999.0
-    state_list[5] = (state_list[5] - 0.7) / 0.7
+    # Normalize to mean = 0.0 and standard deviation = 1.0
+    state_list[2] = (state_list[2] - 7.289) / 8.947
+    state_list[3] = (state_list[3] - 498.91) / 385.17
+    state_list[4] = (state_list[4] - 43.48) / 36.96
+    state_list[5] = (state_list[5] - 0.5417) / 0.2971
 
     return state_list
 
@@ -69,7 +69,7 @@ def _network_output_to_action(nn_output: list[float]) -> ArrayLike:
             max_val = val
             max_idx = i
     tcl_action = max_idx // 20
-    price_level = (max_idx - tcl_action * 20) // 5
+    price_level = (max_idx - tcl_action * 20) // 4
     def_action = (max_idx - tcl_action * 20 - price_level * 4) // 2
     exc_action = (max_idx - tcl_action * 20 - price_level * 4) % 2
     action = np.array([tcl_action, price_level, def_action, exc_action], dtype=np.int64)
@@ -92,24 +92,24 @@ def neat_fitness_function(genomes: list[tuple[int, Genome]]) -> None:
             assert idx_1 == idx_2, "Genomes or their order changed!"
             genome.fitness = fitness
         best_idx, fitness = max(results, key=lambda x: x[1])
-        print(f"best genome: {best_idx}, fitness: {fitness}")
+        print(f"    Generation's best genome: {best_idx}, fitness: {fitness:.2f}")
 
 
 def main():
     neat_config = NeatParams(
-        population_size=20,
+        population_size=50,
 
-        repro_survival_rate=0.1,    # What percentage of species' top members are used for reproduction
+        repro_survival_rate=0.2,    # What percentage of species' top members are used for reproduction
         min_species_size=2,
         max_stagnation=5,
         num_surviving_elite_species=3,  # Minimum number of species to be retained
 
-        compatibility_threshold=0.3,
+        compatibility_threshold=0.5,
         disjoint_coefficient=1.0,
-        weight_coefficient=0.3,
+        weight_coefficient=0.22,
         keep_disabled_probability=0.5,
 
-        node_mutation_probability=0.5,
+        node_mutation_probability=0.2,
         connection_mutation_probability=0.7,
         adjust_weight_prob=0.8,
         replace_weight_prob=0.1,
@@ -117,22 +117,26 @@ def main():
         replace_bial_prob=0.1,
 
         weight_init_mean=0.0,
-        weight_init_stdev=1.0,
-        weight_max_adjust=0.5,
+        weight_init_stdev=2.0,
+        weight_max_adjust=0.3,
         weight_min_val=-10.0,
         weight_max_val=10.0,
 
         bias_init_mean=0.0,
-        bias_init_stdev=1.0,
-        bias_max_adjust=0.5,
+        bias_init_stdev=2.0,
+        bias_max_adjust=0.2,
         bias_min_val=-10.0,
         bias_max_val=10.0,
     )
-    evolution = Evolution(8, 4, neat_config, species_fitness_function)
+    evolution = Evolution(8, 80, neat_config, species_fitness_function)
+
     start_t = time.perf_counter()
-    winning_genome = evolution.run(neat_fitness_function, fitness_goal=10.0, n=50)
+    winning_genome = evolution.run(neat_fitness_function, fitness_goal=10.0, n=20)
+
     end_t = time.perf_counter()
-    print(f"\nWinning genome: {winning_genome}\nFitness: {winning_genome.fitness}")
+    print(
+        f"\nWinning genome: {winning_genome}\nFitness: {winning_genome.fitness}"
+        f"\nNum hidden nodes: {len(winning_genome.nodes) - len(winning_genome.output_keys)}")
     print(f"total run time: {(end_t - start_t):.2f} seconds")
     draw_species_graph(evolution.species_history)
 

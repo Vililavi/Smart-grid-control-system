@@ -1,6 +1,7 @@
 """Coordinate and execute NEAT algorithm."""
 
 from typing import Optional, Callable
+from copy import deepcopy
 
 from neat.genetics.genome import Genome
 from neat.genetics.species import SpeciesSet
@@ -30,7 +31,7 @@ class Evolution:
             neat_params.compatibility_threshold, neat_params.disjoint_coefficient, neat_params.weight_coefficient
         )
         self.species_set.speciate(self.population, self.generation)
-        self.species_history: list[dict[int, tuple[int, int, Optional[float]]]] = []
+        self.species_history: list[dict[int, tuple[list[Genome], int, Optional[float]]]] = []
 
         self.best_genome: Optional[Genome] = None
 
@@ -38,14 +39,23 @@ class Evolution:
         print("Beginning species evolution")
         for _ in range(n):
             print(
-                f"Generation {self.generation}, population size: {len(self.population)}, "
+                f"\nGeneration {self.generation}, population size: {len(self.population)}, "
                 f"number of species: {len(self.species_set.species)}"
             )
             fitness_function(list(self.population.items()))
 
+            species_data = {}
+            for idx, species in self.species_set.species.items():
+                species_data[idx] = (deepcopy(list(species.members.values())), species.created, species.fitness)
+            self.species_history.append(species_data)
+
             best = self._get_best_genome()
             if self.best_genome is None or best.fitness > self.best_genome.fitness:
-                self.best_genome = best
+                self.best_genome = deepcopy(best)
+                print(
+                    f"    New all-time best genome: {best.key}, fitness: {best.fitness:.2f}, "
+                    f"num hidden nodes: {len(best.nodes) - len(best.output_keys)}"
+                )
 
             if self.best_genome.fitness > fitness_goal:
                 break
@@ -53,12 +63,8 @@ class Evolution:
             self.population = self.reproduction.reproduce(
                 self.species_set, self._neat_params.population_size, self.generation
             )
-            species_data = {}
-            for idx, species in self.species_set.species.items():
-                species_data[idx] = (len(species.members), species.created, species.fitness)
-            self.species_history.append(species_data)
-
             self.species_set.speciate(self.population, self.generation)
+
             self.generation += 1
         print("Evolution finished!")
         return self.best_genome

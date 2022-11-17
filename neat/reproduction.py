@@ -81,6 +81,11 @@ class Reproduction:
         """Create a new generation of genes via reproduction from the previous generation according to NEAT."""
         all_fitnesses = []
         surviving_species = []
+
+        # NOTE: Comment out the next two lines if you don't want to use shared fitness within species.
+        for species in species_set.species.values():
+            self._adjust_genome_fitnesses_for_species(species)
+
         for _species_id, species, stagnant in self._get_stagnant_species(species_set, generation):
             if not stagnant:
                 all_fitnesses.extend(genome.fitness for genome in species.members.values())
@@ -105,6 +110,11 @@ class Reproduction:
             self._spawn_offspring(spawn_amount, possible_parents, new_population, new_innovations)
         species_set.species = surviving_species_dict
         return new_population
+
+    @staticmethod
+    def _adjust_genome_fitnesses_for_species(species: Species) -> None:
+        for genome in species.members.values():
+            genome.fitness = genome.fitness / len(species.members)
 
     def _get_stagnant_species(self, species_set: SpeciesSet, generation: int) -> list[tuple[int, Species, bool]]:
         """A species will die if it becomes stagnant (does not make progress) for long enough."""
