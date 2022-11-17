@@ -21,6 +21,12 @@ def get_max_and_min_vals():
     print(f"min price: {min(prices_and_temps[:, 0])}, max price: {max(prices_and_temps[:, 0])}")
     print(f"min temp: {min(prices_and_temps[:, 1])}, max temp: {max(prices_and_temps[:, 1])}")
 
+    print(f"\nwind mean: {wind.mean()}, stdev: {wind.std()}")
+    print(f"up mean: {up.mean()}, stdev: {up.std()}")
+    print(f"down mean: {down.mean()}, stdev: {down.std()}")
+    print(f"price mean: {np.mean(prices_and_temps[:, 0])}, stdev: {np.std(prices_and_temps[:, 0])}")
+    print(f"temp mean: {np.mean(prices_and_temps[:, 1])}, stdev: {np.std(prices_and_temps[:, 1])}")
+
 
 def main():
     curr_path = os.getcwd()
