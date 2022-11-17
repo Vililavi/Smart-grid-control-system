@@ -20,10 +20,10 @@ def species_fitness_function(species_fitnesses: list[float]) -> float:
 
 
 def evaluate_network(network: RecurrentNetwork) -> float:
-    num_days = 100
+    num_days = 365
     env = gym.make("Grid-v0", max_total_steps=24 * num_days)
 
-    num_episodes = 10
+    num_episodes = 2
     total_reward = 0.0
 
     for episode in range(num_episodes):
@@ -109,7 +109,7 @@ def main():
         weight_coefficient=0.3,
         keep_disabled_probability=0.5,
 
-        node_mutation_probability=0.5,
+        node_mutation_probability=0.2,
         connection_mutation_probability=0.7,
         adjust_weight_prob=0.8,
         replace_weight_prob=0.1,
