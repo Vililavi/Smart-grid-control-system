@@ -35,7 +35,7 @@ class ESS:
 
     @classmethod
     def from_params(cls, params: ESSParams) -> "ESS":
-        energy = max(100.0, gauss(250.0, 100.0))
+        energy = min(params.max_energy, max(100.0, gauss(250.0, 100.0)))
         return ESS(
             energy,
             params.max_energy,

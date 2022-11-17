@@ -158,5 +158,5 @@ class SpeciesSet:
             for genome_id in s_members:
                 self._genome_to_species[genome_id] = species_id
 
-            s_members_dict = dict((genome_id, population[genome_id]) for genome_id in members)
+            s_members_dict = dict((genome_id, population[genome_id]) for genome_id in s_members)
             species.update(population[repr_id], s_members_dict)
