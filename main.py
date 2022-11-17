@@ -76,10 +76,6 @@ def neat_fitness_function(genomes: list[tuple[int, Genome]]) -> None:
             genome.fitness = fitness
         best_idx, fitness = max(results, key=lambda x: x[1])
         print(f"best genome: {best_idx}, fitness: {fitness}")
-    # for (_, genome) in genomes:
-    #     nn = RecurrentNetwork.create(genome)
-    #     reward = evaluate_network(nn)
-    #     genome.fitness = reward
 
 
 def main():
@@ -91,7 +87,7 @@ def main():
         max_stagnation=5,
         num_surviving_elite_species=3,
 
-        compatibility_threshold=0.5,
+        compatibility_threshold=0.3,
         disjoint_coefficient=1.0,
         weight_coefficient=0.3,
         keep_disabled_probability=0.5,
