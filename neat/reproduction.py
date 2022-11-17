@@ -5,12 +5,25 @@ from random import choice
 from typing import Callable
 
 from neat.config import NeatParams
-from neat.genetics.genome import Genome, Innovations
+from neat.genetics.genome import Genome, Innovations, MutationParams, WeightOptions
 from neat.genetics.species import SpeciesSet, Species
 
 
 class Reproduction:
     """Handles NEAT reproduction (creation of new genomes), including mutation of genomes."""
+    __slots__ = (
+        "num_inputs",
+        "num_outputs",
+        "neat_params",
+        "_weight_options",
+        "_bias_options",
+        "_mutate_params",
+        "species_fitness_function",
+        "genome_indexer",
+        "node_counter",
+        "conn_counter",
+        "ancestors",
+    )
 
     def __init__(
         self,
@@ -22,6 +35,30 @@ class Reproduction:
         self.num_inputs = num_inputs
         self.num_outputs = num_outputs
         self.neat_params = neat_params
+        self._weight_options = WeightOptions(
+                neat_params.weight_init_mean,
+                neat_params.weight_init_stdev,
+                neat_params.weight_max_adjust,
+                neat_params.weight_min_val,
+                neat_params.weight_max_val,
+            )
+        self._bias_options = WeightOptions(
+                neat_params.bias_init_mean,
+                neat_params.bias_init_stdev,
+                neat_params.bias_max_adjust,
+                neat_params.bias_min_val,
+                neat_params.bias_max_val,
+            )
+        self._mutate_params = MutationParams(
+            neat_params.node_mutation_probability,
+            neat_params.connection_mutation_probability,
+            neat_params.adjust_weight_prob,
+            neat_params.replace_weight_prob,
+            neat_params.adjust_bias_prob,
+            neat_params.replace_bial_prob,
+            weight_options=self._weight_options,
+            bias_options=self._bias_options,
+        )
         self.species_fitness_function = species_fitness_function
 
         self.genome_indexer = count(1)
@@ -34,7 +71,9 @@ class Reproduction:
         genomes: dict[int, Genome] = {}
         for _ in range(population_size):
             key = next(self.genome_indexer)
-            genomes[key] = Genome.create_new(key, self.num_inputs, self.num_outputs, 0)
+            genomes[key] = Genome.create_new(
+                key, self.num_inputs, self.num_outputs, self._weight_options, self._bias_options, 0
+            )
             self.ancestors[key] = tuple()
         return genomes
 
@@ -189,8 +228,7 @@ class Reproduction:
                 genome_id, parent_1, parent_2, self.neat_params.keep_disabled_probability
             )
             offspring.mutate(
-                self.neat_params.node_mutation_probability,
-                self.neat_params.connection_mutation_probability,
+                self._mutate_params,
                 self.node_counter,
                 self.conn_counter,
                 new_innovations

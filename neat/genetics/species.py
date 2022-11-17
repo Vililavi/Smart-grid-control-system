@@ -5,7 +5,7 @@ from itertools import count
 from neat.genetics.genome import Genome
 
 
-@dataclass
+@dataclass(slots=True)
 class Species:
     """Keeps track of genomes in a single species."""
 
@@ -33,6 +33,7 @@ class Species:
 
 class DistanceCache:
     """Caches genome distances for purposes of speciation."""
+    __slots__ = ("disjoint_coeff", "weight_coeff", "distances")
 
     def __init__(self, disjoint_coefficient: float, weight_coefficient: float):
         self.disjoint_coeff = disjoint_coefficient
@@ -53,6 +54,9 @@ class DistanceCache:
 
 class SpeciesSet:
     """Handles speciation, i.e. the division of the population into species."""
+    __slots__ = (
+        "_indexer", "species", "_genome_to_species", "_compatibility_threshold", "disjoint_coeff", "weight_coeff"
+    )
 
     def __init__(self, compatibility_threshold: float, disjoint_coefficient: float, weight_coefficient: float):
         self._indexer = count(1)
@@ -154,5 +158,5 @@ class SpeciesSet:
             for genome_id in s_members:
                 self._genome_to_species[genome_id] = species_id
 
-            s_members_dict = dict((genome_id, population[genome_id]) for genome_id in members)
+            s_members_dict = dict((genome_id, population[genome_id]) for genome_id in s_members)
             species.update(population[repr_id], s_members_dict)

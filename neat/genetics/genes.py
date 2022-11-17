@@ -16,14 +16,15 @@ class NodeType(Enum):
     HIDDEN = 2
 
 
-@dataclass
+@dataclass(slots=True)
 class NodeGene:
     """Gene representation of a node of a neural network."""
     idx: int
     node_type: NodeType
+    bias: float
 
 
-@dataclass
+@dataclass(slots=True)
 class ConnectionGene:
     """Gene representation of a connection in a network."""
     node_in_idx: int

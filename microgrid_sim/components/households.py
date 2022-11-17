@@ -17,14 +17,14 @@ def _get_default_base_hourly_loads() -> list[float]:
     return base_hourly_residential_loads
 
 
-@dataclass
+@dataclass(slots=True)
 class ResidentialLoadParams:
     num_households: int
     hourly_base_prices: ArrayLike
     base_hourly_loads: list[float] = field(default_factory=lambda: _get_default_base_hourly_loads())
     patience: tuple[int, int] = (10, 6)  # mean, standard deviation
     sensitivity: tuple[float, float] = (0.4, 0.3)  # mean, standard deviation
-    price_interval: float = 1.5
+    price_interval: float = 0.0015
     over_pricing_threshold: int = 4
 
     @classmethod
@@ -38,6 +38,8 @@ class ResidentialLoadParams:
 
 class PricingManager:
     """Keeps track of energy prices and validates the agent's price-level decisions."""
+
+    __slots__ = ("_over_pricing_threshold", "price_levels_sum")
 
     def __init__(self, over_pricing_threshold: int = 4):
         self._over_pricing_threshold = over_pricing_threshold
@@ -70,6 +72,8 @@ class HouseholdsManager:
     Also handles the prices of energy for households.
     """
 
+    __slots__ = ("_pr_loads", "_prices", "_price_interval", "_pricing_manager", "_base_loads")
+
     def __init__(
         self,
         pr_loads: list[PriceResponsiveLoad],
@@ -90,6 +94,7 @@ class HouseholdsManager:
         for _ in range(params.num_households):
             mean, std_dev = params.patience
             patience = round(gauss(mean, std_dev))  # not quite exactly correct but shouldn't matter here
+            patience = max(1, patience)
             mean, std_dev = params.sensitivity
             sensitivity = gauss(mean, std_dev)
             price_resp_loads.append(PriceResponsiveLoad(sensitivity, patience))
@@ -119,7 +124,7 @@ class HouseholdsManager:
         """
         price_level = self._pricing_manager.validate_price_level(price_level)
         consumption = self._get_residential_consumption(hour_of_day, price_level)
-        price = self._prices[price_idx] + price_level * self._price_interval
+        price = self._prices[price_idx] / 100 + price_level * self._price_interval
         return consumption, price * consumption
 
     def _get_residential_consumption(self, hour_of_day: int, price_level: int) -> float:

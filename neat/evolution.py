@@ -10,6 +10,9 @@ from neat.reproduction import Reproduction
 
 class Evolution:
     """Tracks the evolution of a population of species and genomes."""
+    __slots__ = (
+        "_neat_params", "generation", "population", "reproduction", "species_set", "species_history", "best_genome"
+    )
 
     def __init__(
         self,
@@ -27,13 +30,17 @@ class Evolution:
             neat_params.compatibility_threshold, neat_params.disjoint_coefficient, neat_params.weight_coefficient
         )
         self.species_set.speciate(self.population, self.generation)
+        self.species_history: list[dict[int, tuple[int, int, Optional[float]]]] = []
 
         self.best_genome: Optional[Genome] = None
 
     def run(self, fitness_function: Callable[[list[tuple[int, Genome]]], None], fitness_goal: float, n: int) -> Genome:
         print("Beginning species evolution")
         for _ in range(n):
-            print(f"Generation {self.generation}, population size: {len(self.population)}")
+            print(
+                f"Generation {self.generation}, population size: {len(self.population)}, "
+                f"number of species: {len(self.species_set.species)}"
+            )
             fitness_function(list(self.population.items()))
 
             best = self._get_best_genome()
@@ -46,6 +53,10 @@ class Evolution:
             self.population = self.reproduction.reproduce(
                 self.species_set, self._neat_params.population_size, self.generation
             )
+            species_data = {}
+            for idx, species in self.species_set.species.items():
+                species_data[idx] = (len(species.members), species.created, species.fitness)
+            self.species_history.append(species_data)
 
             self.species_set.speciate(self.population, self.generation)
             self.generation += 1

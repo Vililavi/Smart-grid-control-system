@@ -1,23 +1,53 @@
 from dataclasses import dataclass, field
 from itertools import count
-from random import choice, random
+from random import choice, random, gauss
 from typing import Tuple, Optional
 
 from neat.genetics.genes import NodeGene, ConnectionGene, NodeType
 
 
-@dataclass
+@dataclass(slots=True)
+class WeightOptions:
+    init_mean: float
+    init_stdev: float
+    max_adjust: float
+    min_val: float
+    max_val: float
+
+    def get_new_val(self) -> float:
+        return gauss(self.init_mean, self.init_stdev)
+
+    def adjust(self, old_val: float) -> float:
+        change = 2 * self.max_adjust * random() - self.max_adjust
+        new_val = old_val + change
+        return min(self.max_val, max(self.min_val, new_val))
+
+
+@dataclass(slots=True)
+class MutationParams:
+    add_node_prob: float
+    add_connection_prob: float
+    adjust_weight_prob: float
+    replace_weight_prob: float
+    adjust_bias_prob: float
+    replace_bial_prob: float
+    weight_options: WeightOptions
+    bias_options: WeightOptions
+
+
+@dataclass(slots=True)
 class Innovations:
     """Used to track the innovations of the current generation during reproduction (mutation) process."""
     split_connections: dict[tuple[int, int], int] = field(init=False, default_factory=lambda: {})
     added_connections: dict[tuple[int, int], int] = field(init=False, default_factory=lambda: {})
 
 
-@dataclass
+@dataclass(slots=True)
 class Genome:
     """Genetic representation of a neural network."""
     key: int
-    non_input_keys: list[int]
+    inputs: dict[int, NodeGene]
+    output_keys: list[int]
     nodes: dict[int, NodeGene]  # Nodes chromosome
     connections: dict[(int, int), ConnectionGene]  # Connections chromosome
     conns_by_innovation: dict[int, ConnectionGene] = field(init=False)
@@ -30,20 +60,32 @@ class Genome:
 
     @classmethod
     def create_new(
-        cls, key: int, num_inputs: int, num_outputs: int, node_start: int = 1, conn_start: int = 1
+        cls,
+        key: int,
+        num_inputs: int,
+        num_outputs: int,
+        weight_options: WeightOptions,
+        bias_options: WeightOptions,
+        node_start: int = 0,
+        conn_start: int = 1
     ) -> "Genome":
         """Create a new Genome with random weights and without hidden nodes."""
-        non_input_keys = [num_inputs + i for i in range(num_outputs)]
+        output_keys = [i for i in range(node_start + num_inputs, node_start + num_inputs + num_outputs)]
+        inputs = {}
         nodes = {}
         connections = {}
         for i in range(num_inputs):
-            nodes[node_start + i] = NodeGene(i, NodeType.SENSOR)
+            inputs[node_start + i] = NodeGene(i, NodeType.SENSOR, bias_options.get_new_val())
             for j in range(num_outputs):
                 c_key = (i, j)
-                connections[c_key] = ConnectionGene(i, num_inputs + j, 2 * random() - 1, True, conn_start + i * j)
+                connections[c_key] = ConnectionGene(
+                    i, num_inputs + j, weight_options.get_new_val(), True, conn_start + i * j
+                )
         for i in range(num_outputs):
-            nodes[node_start + num_inputs + i] = NodeGene(node_start + num_inputs + i, NodeType.OUTPUT)
-        return Genome(key, non_input_keys, nodes, connections)
+            nodes[node_start + num_inputs + i] = NodeGene(
+                node_start + num_inputs + i, NodeType.OUTPUT, bias_options.get_new_val()
+            )
+        return cls(key, inputs, output_keys, nodes, connections)
 
     @classmethod
     def from_crossover(cls, key: int, genome_1: "Genome", genome_2: "Genome", keep_disable_prob: float) -> "Genome":
@@ -54,7 +96,7 @@ class Genome:
             parent_1, parent_2 = genome_2, genome_1
 
         connections = Genome._get_inherited_connections(parent_1, parent_2, keep_disable_prob)
-        return Genome(key, parent_1.non_input_keys, parent_1.nodes, connections)
+        return cls(key, parent_1.inputs, parent_1.output_keys, parent_1.nodes, connections)
 
     @staticmethod
     def _get_inherited_connections(
@@ -71,57 +113,72 @@ class Genome:
 
     def mutate(
         self,
-        add_node_prob: float,
-        add_conn_prob: float,
+        mutation_params: MutationParams,
         node_counter: count,
         conn_counter: count,
         innovations_in_curr_generation: Innovations
     ) -> None:
         """Mutates this genome"""
-        if random() < add_node_prob:
-            self._mutate_add_node(conn_counter, node_counter, innovations_in_curr_generation)
-        if random() < add_conn_prob:
-            self._mutate_add_connection(conn_counter, innovations_in_curr_generation)
+        if random() < mutation_params.add_node_prob:
+            self._mutate_add_node(conn_counter, node_counter, innovations_in_curr_generation, mutation_params)
+        if random() < mutation_params.add_connection_prob:
+            self._mutate_add_connection(conn_counter, innovations_in_curr_generation, mutation_params.weight_options)
+        rand = random()
+        if random() < mutation_params.adjust_weight_prob + mutation_params.replace_weight_prob:
+            self._mutate_a_weight(mutation_params.weight_options, rand < mutation_params.replace_weight_prob)
+        rand = random()
+        if random() < mutation_params.adjust_bias_prob + mutation_params.replace_bial_prob:
+            self._mutate_a_bias(mutation_params.bias_options, rand < mutation_params.replace_bial_prob)
 
     def _mutate_add_node(
-        self, node_counter: count, conn_counter: count, inns_in_curr_gen: Innovations
+        self, node_counter: count, conn_counter: count, inns_in_curr_gen: Innovations, mutation_params: MutationParams
     ) -> Tuple[ConnectionGene, ConnectionGene]:
         """Mutates this genome by adding a node."""
         conn_to_split = choice(list(self.connections.values()))
         conn_to_split.enabled = False
 
-        new_node_idx = self._add_node(conn_to_split, node_counter, inns_in_curr_gen)
+        new_node_idx = self._add_node(conn_to_split, node_counter, inns_in_curr_gen, mutation_params.bias_options)
 
-        c1 = self._add_connection(conn_to_split.node_in_idx, new_node_idx, 1.0, True, conn_counter, inns_in_curr_gen)
+        c1 = self._add_connection(
+            conn_to_split.node_in_idx, new_node_idx, 1.0, True, conn_counter, inns_in_curr_gen
+        )
         c2 = self._add_connection(
             new_node_idx, conn_to_split.node_out_idx, conn_to_split.weight, True, conn_counter, inns_in_curr_gen
         )
         return c1, c2
 
-    def _add_node(self, conn_to_split: ConnectionGene, node_counter: count, inns_in_curr_gen: Innovations) -> int:
+    def _add_node(
+        self,
+        conn_to_split: ConnectionGene,
+        node_counter: count,
+        inns_in_curr_gen: Innovations,
+        bias_options: WeightOptions,
+    ) -> int:
         key = (conn_to_split.node_in_idx, conn_to_split.node_out_idx)
         if key in inns_in_curr_gen.split_connections:
             new_node_idx = inns_in_curr_gen.split_connections[key]
         else:
             new_node_idx = next(node_counter)
             inns_in_curr_gen.split_connections[key] = new_node_idx
-        self.nodes[new_node_idx] = NodeGene(new_node_idx, NodeType.HIDDEN)
-        self.non_input_keys.append(new_node_idx)
+        self.nodes[new_node_idx] = NodeGene(new_node_idx, NodeType.HIDDEN, bias_options.get_new_val())
         return new_node_idx
 
     def _mutate_add_connection(
-        self, conn_counter: count, inns_in_curr_gen: Innovations
+        self, conn_counter: count, inns_in_curr_gen: Innovations, weight_options: WeightOptions
     ) -> Optional[ConnectionGene]:
         """Mutates this genome by adding a new connection."""
-        in_key = choice(list(self.nodes.keys()))
-        out_key = choice(self.non_input_keys)
+        possible_inputs = list(self.nodes.keys())
+        possible_inputs.extend(list(self.inputs.keys()))
+        in_key = choice(possible_inputs)
+        out_key = choice(list(self.nodes.keys()))
         key = (in_key, out_key)
         if key in self.connections:
             self.connections[key].enabled = True
             return
-        if self.nodes[in_key].node_type == NodeType.OUTPUT and self.nodes[out_key].node_type == NodeType.OUTPUT:
-            return
-        return self._add_connection(in_key, out_key, 2 * random() - 1, True, conn_counter, inns_in_curr_gen)
+        if in_key not in self.inputs:
+            if self.nodes[in_key].node_type == NodeType.OUTPUT and self.nodes[out_key].node_type == NodeType.OUTPUT:
+                return
+        return self._add_connection(in_key, out_key, weight_options.get_new_val(), True, conn_counter, inns_in_curr_gen)
 
     def _add_connection(
         self,
@@ -142,6 +199,20 @@ class Genome:
         connection = ConnectionGene(in_key, out_key, weight, enabled, innov_num)
         self.connections[key] = connection
         return connection
+
+    def _mutate_a_weight(self, options: WeightOptions, replace: bool) -> None:
+        connection = choice(list(self.connections.values()))
+        if replace:
+            connection.weight = options.get_new_val()
+        else:
+            connection.weight = options.adjust(connection.weight)
+
+    def _mutate_a_bias(self, options: WeightOptions, replace: bool) -> None:
+        node = choice(list(self.nodes.values()))
+        if replace:
+            node.bias = options.get_new_val()
+        else:
+            node.bias = options.adjust(node.bias)
 
     @staticmethod
     def genome_distance(genome_1: "Genome", genome_2: "Genome", disjoint_coeff: float, weight_coeff: float) -> float:

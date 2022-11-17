@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 
 
-@dataclass
+@dataclass(slots=True)
 class BackupController:
     """Model for a backup controller making sure that indoor temperature stays acceptable."""
     min_temp: float
@@ -32,7 +32,7 @@ class BackupController:
         return (in_temp - self.min_temp) / (self.max_temp - self.min_temp)
 
 
-@dataclass
+@dataclass(slots=True)
 class TCLTemperatureModel:
     """Class for storing and updating temperature information."""
     in_temp: float
@@ -72,7 +72,7 @@ class TCLTemperatureModel:
         return (self.in_temp - self._building_temp) * self._therm_mass_building
 
 
-@dataclass
+@dataclass(slots=True)
 class TCL:
     """Model for a Thermostatically Controlled Load (TCL), e.g. an air conditioner or a water heater etc."""
     soc: float = field(init=False)
