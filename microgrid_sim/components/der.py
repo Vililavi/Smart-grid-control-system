@@ -7,7 +7,7 @@ import pandas as pd
 @dataclass(slots=True)
 class DERParams:
     hourly_generated_energies_file_path: str
-    generation_cost: float = 32.0
+    generation_cost: float = 0.032
 
     @classmethod
     def from_dict(cls, der_params_dict: dict[str, Union[float, str]]) -> "DERParams":

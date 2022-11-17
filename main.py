@@ -7,6 +7,7 @@ import numpy as np
 
 import custom_envs.grid_v0
 
+from visuals import draw_species_graph
 from neat.config import NeatParams
 from neat.evolution import Evolution
 from neat.genetics.genome import Genome
@@ -83,7 +84,7 @@ def neat_fitness_function(genomes: list[tuple[int, Genome]]) -> None:
 
 def main():
     neat_config = NeatParams(
-        population_size=20,
+        population_size=10,
 
         repro_survival_rate=0.1,
         min_species_size=2,
@@ -116,10 +117,11 @@ def main():
     )
     evolution = Evolution(8, 4, neat_config, species_fitness_function)
     start_t = time.perf_counter()
-    winning_genome = evolution.run(neat_fitness_function, fitness_goal=1e9, n=10)
+    winning_genome = evolution.run(neat_fitness_function, fitness_goal=1e9, n=5)
     end_t = time.perf_counter()
     print(f"\nWinning genome: {winning_genome}\nFitness: {winning_genome.fitness}")
     print(f"total run time: {(end_t - start_t):.2f} seconds")
+    draw_species_graph(evolution.species_history)
 
 
 if __name__ == "__main__":

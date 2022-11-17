@@ -9,8 +9,8 @@ from pandas import DataFrame
 class MainGridParams:
     up_prices_file_path: str
     down_prices_file_path: str
-    import_transmission_price: float = 9.7
-    export_transmission_price: float = 0.9
+    import_transmission_price: float = 0.0097
+    export_transmission_price: float = 0.0009
 
     @classmethod
     def from_dict(cls, main_grid_params_dict: dict[str, Union[float, str]]) -> "MainGridParams":
@@ -46,10 +46,10 @@ class MainGrid:
         return self.get_up_price(idx), self.get_down_price(idx)
 
     def get_up_price(self, idx: int) -> float:
-        return float(self._up_prices.iloc[idx][-1])
+        return float(self._up_prices.iloc[idx][-1]) / 1000
 
     def get_down_price(self, idx: int) -> float:
-        return float(self._down_prices.iloc[idx][-1])
+        return float(self._down_prices.iloc[idx][-1]) / 1000
 
     def get_bought_cost(self, bought_energy: float, price_idx: int) -> float:
         """

@@ -33,18 +33,18 @@ def get_default_microgrid_params(path_to_data: str) -> dict[str, dict[str, Any]]
     main_grid_params = {
         "up_prices_file_path": os.path.join(path_to_data, "up_regulation.csv"),  # REQUIRED
         "down_prices_file_path": os.path.join(path_to_data, "down_regulation.csv"),  # REQUIRED
-        "import_transmission_price": 9.7,
-        "export_transmission_price": 0.9,
+        "import_transmission_price": 0.0097,
+        "export_transmission_price": 0.0009,
     }
     der_params = {
         "hourly_generated_energies_file_path": os.path.join(path_to_data, "wind_generation.csv"),  # REQUIRED
-        "generation_cost": 32.0,
+        "generation_cost": 0.032,
     }
     residential_params = {
         "num_households": 150,  # REQUIRED
         "patience": (10, 6),
         "sensitivity": (0.4, 0.3),
-        "price_interval": 1.5,
+        "price_interval": 0.0015,
         "over_pricing_threshold": 4,
     }
 
@@ -97,9 +97,9 @@ class Environment:
         return state, reward
 
     def _get_tcl_energy(self, tcl_action: int) -> float:
-        """Returns energy amount from options {20%, 40%, 60%, 80%} of the max consumption."""
+        """Returns energy amount from options {0%, 33%, 67%, 100%} of the max consumption."""
         max_cons = self.components.tcl_aggregator.get_number_of_tcls() * 1.5
-        return max_cons * (tcl_action + 1) / 5
+        return max_cons * tcl_action / 3
 
     def _apply_action(self, tcl_action: int, price_level: int, deficiency_prio: str, excess_prio: str) -> float:
         """Apply the choices of the agent and return reward."""

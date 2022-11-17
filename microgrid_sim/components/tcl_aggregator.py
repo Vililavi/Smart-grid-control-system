@@ -45,17 +45,17 @@ class TCLAggregator:
 
     @classmethod
     def _get_temp_model_from_params(cls, params: TCLParams) -> TCLTemperatureModel:
-        in_temp = gauss((params.max_temp + params.min_temp) / 2, 1.5)
+        in_temp = min(params.max_temp, max(params.min_temp, gauss((params.max_temp + params.min_temp) / 2, 1.5)))
         mean, std_dev = params.thermal_mass_air
-        tm_air = gauss(mean, std_dev)
+        tm_air = max(0.001, gauss(mean, std_dev))
         mean, std_dev = params.thermal_mass_building
-        tm_building = gauss(mean, std_dev)
+        tm_building = max(0.01, gauss(mean, std_dev))
         mean, std_dev = params.internal_heating
         heating = gauss(mean, std_dev)
         temp_model = TCLTemperatureModel(
             in_temp,
             params.out_temperatures[0],
-            gauss((params.max_temp + params.min_temp) / 2, 3.5),
+            min(params.max_temp, max(params.min_temp, gauss((params.max_temp + params.min_temp) / 2, 3.5))),
             tm_air,
             tm_building,
             heating

@@ -24,7 +24,7 @@ class ResidentialLoadParams:
     base_hourly_loads: list[float] = field(default_factory=lambda: _get_default_base_hourly_loads())
     patience: tuple[int, int] = (10, 6)  # mean, standard deviation
     sensitivity: tuple[float, float] = (0.4, 0.3)  # mean, standard deviation
-    price_interval: float = 1.5
+    price_interval: float = 0.0015
     over_pricing_threshold: int = 4
 
     @classmethod
@@ -124,7 +124,7 @@ class HouseholdsManager:
         """
         price_level = self._pricing_manager.validate_price_level(price_level)
         consumption = self._get_residential_consumption(hour_of_day, price_level)
-        price = self._prices[price_idx] + price_level * self._price_interval
+        price = self._prices[price_idx] / 100 + price_level * self._price_interval
         return consumption, price * consumption
 
     def _get_residential_consumption(self, hour_of_day: int, price_level: int) -> float:
