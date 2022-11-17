@@ -52,11 +52,11 @@ def _state_to_network_input(state: tuple[ArrayLike, int, int]) -> list[float]:
     state_list = list(floats)
     state_list.extend([float(price_counter), float(hour)])
 
-    # Normalize to [-1, 1]
-    state_list[2] = (state_list[2] - 5.0) / 27.0
-    state_list[3] = (state_list[3] - 900.0) / 900.0
-    state_list[4] = (state_list[4] - 2999.0) / 2999.0
-    state_list[5] = (state_list[5] - 0.7) / 0.7
+    # Normalize to mean = 0.0 and standard deviation = 1.0
+    state_list[2] = (state_list[2] - 7.289) / 8.947
+    state_list[3] = (state_list[3] - 498.91) / 385.17
+    state_list[4] = (state_list[4] - 43.48) / 36.96
+    state_list[5] = (state_list[5] - 0.5417) / 0.2971
 
     return state_list
 
@@ -92,7 +92,7 @@ def neat_fitness_function(genomes: list[tuple[int, Genome]]) -> None:
             assert idx_1 == idx_2, "Genomes or their order changed!"
             genome.fitness = fitness
         best_idx, fitness = max(results, key=lambda x: x[1])
-        print(f"best genome: {best_idx}, fitness: {fitness}")
+        print(f"    Generation's best genome: {best_idx}, fitness: {fitness:.2f}")
 
 
 def main():
@@ -130,7 +130,7 @@ def main():
     )
     evolution = Evolution(8, 4, neat_config, species_fitness_function)
     start_t = time.perf_counter()
-    winning_genome = evolution.run(neat_fitness_function, fitness_goal=10.0, n=50)
+    winning_genome = evolution.run(neat_fitness_function, fitness_goal=10.0, n=20)
     end_t = time.perf_counter()
     print(f"\nWinning genome: {winning_genome}\nFitness: {winning_genome.fitness}")
     print(f"total run time: {(end_t - start_t):.2f} seconds")

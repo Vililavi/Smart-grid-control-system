@@ -26,6 +26,13 @@ def get_max_and_min_vals():
     print(f"down mean: {down.mean()}, stdev: {down.std()}")
     print(f"price mean: {np.mean(prices_and_temps[:, 0])}, stdev: {np.std(prices_and_temps[:, 0])}")
     print(f"temp mean: {np.mean(prices_and_temps[:, 1])}, stdev: {np.std(prices_and_temps[:, 1])}")
+    base_hourly_loads = np.array([
+        0.4, 0.3, 0.2, 0.2, 0.2, 0.2,
+        0.3, 0.5, 0.6, 0.6, 0.5, 0.5,
+        0.5, 0.4, 0.4, 0.6, 0.8, 1.4,
+        1.2, 0.9, 0.8, 0.6, 0.5, 0.4
+    ])
+    print(f"loads mean: {np.mean(base_hourly_loads)}, stdev: {np.std(base_hourly_loads)}")
 
 
 def main():

@@ -1,6 +1,7 @@
 """Coordinate and execute NEAT algorithm."""
 
 from typing import Optional, Callable
+from copy import deepcopy
 
 from neat.genetics.genome import Genome
 from neat.genetics.species import SpeciesSet
@@ -45,7 +46,11 @@ class Evolution:
 
             best = self._get_best_genome()
             if self.best_genome is None or best.fitness > self.best_genome.fitness:
-                self.best_genome = best
+                self.best_genome = deepcopy(best)
+                print(
+                    f"New all-time best genome: {best.key}, fitness: {best.fitness:.2f}, "
+                    f"num hidden nodes: {len(best.nodes) - len(best.output_keys)}"
+                )
 
             if self.best_genome.fitness > fitness_goal:
                 break
