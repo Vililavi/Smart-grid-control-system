@@ -69,7 +69,7 @@ def _network_output_to_action(nn_output: list[float]) -> ArrayLike:
             max_val = val
             max_idx = i
     tcl_action = max_idx // 20
-    price_level = (max_idx - tcl_action * 20) // 5
+    price_level = (max_idx - tcl_action * 20) // 4
     def_action = (max_idx - tcl_action * 20 - price_level * 4) // 2
     exc_action = (max_idx - tcl_action * 20 - price_level * 4) % 2
     action = np.array([tcl_action, price_level, def_action, exc_action], dtype=np.int64)
@@ -97,16 +97,16 @@ def neat_fitness_function(genomes: list[tuple[int, Genome]]) -> None:
 
 def main():
     neat_config = NeatParams(
-        population_size=20,
+        population_size=50,
 
-        repro_survival_rate=0.1,    # What percentage of species' top members are used for reproduction
+        repro_survival_rate=0.2,    # What percentage of species' top members are used for reproduction
         min_species_size=2,
         max_stagnation=5,
         num_surviving_elite_species=3,  # Minimum number of species to be retained
 
-        compatibility_threshold=0.3,
+        compatibility_threshold=0.5,
         disjoint_coefficient=1.0,
-        weight_coefficient=0.3,
+        weight_coefficient=0.2,
         keep_disabled_probability=0.5,
 
         node_mutation_probability=0.2,
@@ -117,22 +117,26 @@ def main():
         replace_bial_prob=0.1,
 
         weight_init_mean=0.0,
-        weight_init_stdev=1.0,
-        weight_max_adjust=0.5,
+        weight_init_stdev=2.0,
+        weight_max_adjust=0.3,
         weight_min_val=-10.0,
         weight_max_val=10.0,
 
         bias_init_mean=0.0,
-        bias_init_stdev=1.0,
-        bias_max_adjust=0.5,
+        bias_init_stdev=2.0,
+        bias_max_adjust=0.2,
         bias_min_val=-10.0,
         bias_max_val=10.0,
     )
-    evolution = Evolution(8, 4, neat_config, species_fitness_function)
+    evolution = Evolution(8, 80, neat_config, species_fitness_function)
+
     start_t = time.perf_counter()
     winning_genome = evolution.run(neat_fitness_function, fitness_goal=10.0, n=20)
+
     end_t = time.perf_counter()
-    print(f"\nWinning genome: {winning_genome}\nFitness: {winning_genome.fitness}")
+    print(
+        f"\nWinning genome: {winning_genome}\nFitness: {winning_genome.fitness}"
+        f"\nNum hidden nodes: {len(winning_genome.nodes) - len(winning_genome.output_keys)}")
     print(f"total run time: {(end_t - start_t):.2f} seconds")
     draw_species_graph(evolution.species_history)
 
