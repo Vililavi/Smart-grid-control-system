@@ -115,20 +115,20 @@ def main():
 
         node_mutation_probability=0.2,
         connection_mutation_probability=0.7,
-        adjust_weight_prob=0.8,
+        adjust_weight_prob=0.3,
         replace_weight_prob=0.1,
-        adjust_bias_prob=0.6,
+        adjust_bias_prob=0.3,
         replace_bial_prob=0.1,
 
         weight_init_mean=0.0,
         weight_init_stdev=2.0,
-        weight_max_adjust=0.3,
+        weight_max_adjust=0.1,
         weight_min_val=-10.0,
         weight_max_val=10.0,
 
         bias_init_mean=0.0,
         bias_init_stdev=2.0,
-        bias_max_adjust=0.2,
+        bias_max_adjust=0.1,
         bias_min_val=-10.0,
         bias_max_val=10.0,
     )
