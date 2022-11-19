@@ -53,10 +53,14 @@ def _state_to_network_input(state: tuple[ArrayLike, int, int]) -> list[float]:
     state_list.extend([float(price_counter), float(hour)])
 
     # Normalize to mean = 0.0 and standard deviation = 1.0
+    state_list[0] = (state_list[0] - 0.5) * 3.0  # crude estimate of the correct values
+    state_list[1] = (state_list[1] - 0.5) * 3.0  # crude estimate of the correct values
     state_list[2] = (state_list[2] - 7.289) / 8.947
     state_list[3] = (state_list[3] - 498.91) / 385.17
     state_list[4] = (state_list[4] - 43.48) / 36.96
     state_list[5] = (state_list[5] - 0.5417) / 0.2971
+    state_list[6] = state_list[6] / 2.0  # crude estimate of the correct values
+    state_list[7] = (state_list[7] - 11.5) / 30.0  # should be enough that this scales close to linearly in sigmoid
 
     return state_list
 
