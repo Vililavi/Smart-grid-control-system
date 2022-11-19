@@ -40,7 +40,7 @@ def draw_species_graph(species_data: list[dict[int, tuple[list[Genome], int, Opt
         plt.plot(fitnesses, label=f"Species {idx}")
     plt.xlabel("Generation")
     plt.ylabel("Fitness")
-    plt.legend()
+    plt.legend(loc="lower left")
     plt.show()
 
     fig: matplotlib.figure.Figure = plt.figure("Top species member fitnesses", figsize=(10.0, 8.0))
@@ -48,7 +48,7 @@ def draw_species_graph(species_data: list[dict[int, tuple[list[Genome], int, Opt
         plt.plot(fitnesses, label=f"Species {idx}")
     plt.xlabel("Generation")
     plt.ylabel("Fitness")
-    plt.legend()
+    plt.legend(loc="lower left")
     plt.show()
 
     fig: matplotlib.figure.Figure = plt.figure("Species sizes", figsize=(10.0, 8.0))
@@ -56,5 +56,5 @@ def draw_species_graph(species_data: list[dict[int, tuple[list[Genome], int, Opt
         plt.plot(sizes, label=f"Species {idx}")
     plt.xlabel("Generation")
     plt.ylabel("Size")
-    plt.legend()
+    plt.legend(loc="lower left")
     plt.show()
