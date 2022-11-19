@@ -101,41 +101,41 @@ def neat_fitness_function(genomes: list[tuple[int, Genome]]) -> None:
 
 def main():
     neat_config = NeatParams(
-        population_size=50,
+        population_size=200,
 
-        repro_survival_rate=0.2,    # What percentage of species' top members are used for reproduction
+        repro_survival_rate=0.1,    # What percentage of species' top members are used for reproduction
         min_species_size=2,
-        max_stagnation=5,
-        num_surviving_elite_species=3,  # Minimum number of species to be retained
+        max_stagnation=10,
+        num_surviving_elite_species=4,  # Minimum number of species to be retained
 
         compatibility_threshold=0.5,
         disjoint_coefficient=1.0,
-        weight_coefficient=0.22,
+        weight_coefficient=0.15,
         keep_disabled_probability=0.5,
 
-        node_mutation_probability=0.2,
-        connection_mutation_probability=0.7,
-        adjust_weight_prob=0.5,
-        replace_weight_prob=0.1,
-        adjust_bias_prob=0.5,
+        node_mutation_probability=0.3,
+        connection_mutation_probability=0.9,
+        adjust_weight_prob=0.8,
+        replace_weight_prob=0.05,
+        adjust_bias_prob=0.7,
         replace_bial_prob=0.1,
 
         weight_init_mean=0.0,
-        weight_init_stdev=2.0,
+        weight_init_stdev=3.0,
         weight_max_adjust=0.1,
         weight_min_val=-10.0,
         weight_max_val=10.0,
 
         bias_init_mean=0.0,
         bias_init_stdev=2.0,
-        bias_max_adjust=0.1,
+        bias_max_adjust=0.05,
         bias_min_val=-10.0,
         bias_max_val=10.0,
     )
     evolution = Evolution(8, 80, neat_config, species_fitness_function)
 
     start_t = time.perf_counter()
-    winning_genome = evolution.run(neat_fitness_function, fitness_goal=10.0, n=20)
+    winning_genome = evolution.run(neat_fitness_function, fitness_goal=10.0, n=50)
 
     end_t = time.perf_counter()
     print(

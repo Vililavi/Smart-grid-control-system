@@ -1,3 +1,4 @@
+from math import sqrt, log2
 from dataclasses import dataclass, field
 from itertools import count
 from random import choice, random, gauss
@@ -236,7 +237,7 @@ class Genome:
             if key_2 not in genome_1.nodes:
                 disjoint_nodes += 1
         max_nodes = max(len(genome_1.nodes), len(genome_2.nodes))
-        return disjoint_coeff * disjoint_nodes / max_nodes
+        return disjoint_coeff * disjoint_nodes / max(1.0, log2(max_nodes))
 
     @staticmethod
     def _compute_connection_distance(
@@ -259,4 +260,6 @@ class Genome:
                 disjoint_connections += 1
 
         max_conn = max(len(genome_1.connections), len(genome_2.connections))
-        return disjoint_coeff * disjoint_connections / max_conn + weight_coeff * weight_diff / matching_connections
+        disjoint_dist = disjoint_coeff * disjoint_connections / max(1.0, log2(max_conn))
+        weight_dist = weight_coeff * weight_diff / matching_connections
+        return disjoint_dist + weight_dist
