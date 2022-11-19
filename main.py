@@ -115,9 +115,9 @@ def main():
 
         node_mutation_probability=0.2,
         connection_mutation_probability=0.7,
-        adjust_weight_prob=0.3,
+        adjust_weight_prob=0.5,
         replace_weight_prob=0.1,
-        adjust_bias_prob=0.3,
+        adjust_bias_prob=0.5,
         replace_bial_prob=0.1,
 
         weight_init_mean=0.0,
