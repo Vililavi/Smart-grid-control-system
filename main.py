@@ -101,7 +101,7 @@ def neat_fitness_function(genomes: list[tuple[int, Genome]]) -> None:
 
 def main():
     neat_config = NeatParams(
-        population_size=200,
+        population_size=50,
 
         repro_survival_rate=0.1,    # What percentage of species' top members are used for reproduction
         min_species_size=2,
@@ -135,7 +135,7 @@ def main():
     evolution = Evolution(8, 80, neat_config, species_fitness_function)
 
     start_t = time.perf_counter()
-    winning_genome = evolution.run(neat_fitness_function, fitness_goal=10.0, n=50)
+    winning_genome = evolution.run(neat_fitness_function, fitness_goal=10.0, n=20)
 
     end_t = time.perf_counter()
     print(
