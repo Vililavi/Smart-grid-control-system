@@ -120,7 +120,7 @@ class Genome:
     ) -> None:
         """Mutates this genome"""
         if random() < mutation_params.add_node_prob:
-            self._mutate_add_node(conn_counter, node_counter, innovations_in_curr_generation, mutation_params)
+            self._mutate_add_node(node_counter, conn_counter, innovations_in_curr_generation, mutation_params)
         if random() < mutation_params.add_connection_prob:
             self._mutate_add_connection(conn_counter, innovations_in_curr_generation, mutation_params.weight_options)
         rand = random()
@@ -198,6 +198,7 @@ class Genome:
             inns_in_curr_gen.added_connections[key] = innov_num
         connection = ConnectionGene(in_key, out_key, weight, enabled, innov_num)
         self.connections[key] = connection
+        self.conns_by_innovation[innov_num] = connection
         return connection
 
     def _mutate_a_weight(self, options: WeightOptions, replace: bool) -> None:
