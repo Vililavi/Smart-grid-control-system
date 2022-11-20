@@ -142,11 +142,6 @@ def main():
         f"\nWinning genome: {winning_genome}\nFitness: {winning_genome.fitness}"
         f"\nNum hidden nodes: {len(winning_genome.nodes) - len(winning_genome.output_keys)}")
     print(f"total run time: {(end_t - start_t):.2f} seconds")
-    new_conns = []
-    for (in_key, out_key), conn in winning_genome.connections.items():
-        if in_key > 87 or out_key > 87:
-            new_conns.append(conn)
-    print(f"added conns: {new_conns}")
     draw_species_graph(evolution.species_history)
 
 
