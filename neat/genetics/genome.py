@@ -1,3 +1,5 @@
+from copy import deepcopy
+from math import sqrt, log2
 from dataclasses import dataclass, field
 from itertools import count
 from random import choice, random, gauss
@@ -94,7 +96,13 @@ class Genome:
             parent_1, parent_2 = genome_2, genome_1
 
         connections = Genome._get_inherited_connections(parent_1, parent_2, keep_disable_prob)
-        return cls(key, parent_1.inputs, parent_1.output_keys, parent_1.nodes, connections)
+        nodes = {}
+        for (in_key, out_key) in connections:
+            if in_key in parent_1.nodes and in_key not in nodes:
+                nodes[in_key] = deepcopy(parent_1.nodes[in_key])
+            if out_key in parent_1.nodes and out_key not in nodes:
+                nodes[out_key] = deepcopy(parent_1.nodes[out_key])
+        return cls(key, parent_1.inputs, parent_1.output_keys, nodes, connections)
 
     @staticmethod
     def _get_inherited_connections(
@@ -121,12 +129,12 @@ class Genome:
             self._mutate_add_node(node_counter, conn_counter, innovations_in_curr_generation, mutation_params)
         if random() < mutation_params.add_connection_prob:
             self._mutate_add_connection(conn_counter, innovations_in_curr_generation, mutation_params.weight_options)
-        rand = random()
-        if random() < mutation_params.adjust_weight_prob + mutation_params.replace_weight_prob:
-            self._mutate_a_weight(mutation_params.weight_options, rand < mutation_params.replace_weight_prob)
-        rand = random()
-        if random() < mutation_params.adjust_bias_prob + mutation_params.replace_bial_prob:
-            self._mutate_a_bias(mutation_params.bias_options, rand < mutation_params.replace_bial_prob)
+        self._mutate_weights(
+            mutation_params.adjust_weight_prob, mutation_params.replace_weight_prob, mutation_params.weight_options
+        )
+        self._mutate_biases(
+            mutation_params.adjust_bias_prob, mutation_params.replace_bial_prob, mutation_params.bias_options
+        )
 
     def _mutate_add_node(
         self, node_counter: count, conn_counter: count, inns_in_curr_gen: Innovations, mutation_params: MutationParams
@@ -199,19 +207,21 @@ class Genome:
         self.conns_by_innovation[innov_num] = connection
         return connection
 
-    def _mutate_a_weight(self, options: WeightOptions, replace: bool) -> None:
-        connection = choice(list(self.connections.values()))
-        if replace:
-            connection.weight = options.get_new_val()
-        else:
-            connection.weight = options.adjust(connection.weight)
+    def _mutate_weights(self, adjust_prob: float, replace_prob: float, options: WeightOptions) -> None:
+        for connection in self.connections.values():
+            rand = random()
+            if rand < replace_prob:
+                connection.weight = options.get_new_val()
+            elif rand < adjust_prob + replace_prob:
+                connection.weight = options.adjust(connection.weight)
 
-    def _mutate_a_bias(self, options: WeightOptions, replace: bool) -> None:
-        node = choice(list(self.nodes.values()))
-        if replace:
-            node.bias = options.get_new_val()
-        else:
-            node.bias = options.adjust(node.bias)
+    def _mutate_biases(self, adjust_prob: float, replace_prob: float, options: WeightOptions) -> None:
+        for node in self.nodes.values():
+            rand = random()
+            if rand < replace_prob:
+                node.bias = options.get_new_val()
+            elif rand < adjust_prob + replace_prob:
+                node.bias = options.adjust(node.bias)
 
     @staticmethod
     def genome_distance(genome_1: "Genome", genome_2: "Genome", disjoint_coeff: float, weight_coeff: float) -> float:
@@ -233,7 +243,7 @@ class Genome:
             if key_2 not in genome_1.nodes:
                 disjoint_nodes += 1
         max_nodes = max(len(genome_1.nodes), len(genome_2.nodes))
-        return disjoint_coeff * disjoint_nodes / max_nodes
+        return disjoint_coeff * disjoint_nodes / max(1.0, log2(max_nodes))
 
     @staticmethod
     def _compute_connection_distance(
@@ -256,4 +266,6 @@ class Genome:
                 disjoint_connections += 1
 
         max_conn = max(len(genome_1.connections), len(genome_2.connections))
-        return disjoint_coeff * disjoint_connections / max_conn + weight_coeff * weight_diff / matching_connections
+        disjoint_dist = disjoint_coeff * disjoint_connections / max(1.0, log2(max_conn))
+        weight_dist = weight_coeff * weight_diff / matching_connections
+        return disjoint_dist + weight_dist

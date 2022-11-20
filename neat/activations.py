@@ -5,7 +5,6 @@ and code for adding new user-defined ones
 """
 
 import math
-import types
 
 
 def sigmoid_activation(z):
@@ -93,60 +92,3 @@ def square_activation(z):
 
 def cube_activation(z):
     return z ** 3
-
-
-class InvalidActivationFunction(TypeError):
-    pass
-
-
-def validate_activation(function):
-    if not isinstance(function,
-                      (types.BuiltinFunctionType,
-                       types.FunctionType,
-                       types.LambdaType)):
-        raise InvalidActivationFunction("A function object is required.")
-
-    if function.__code__.co_argcount != 1:  # avoid deprecated use of `inspect`
-        raise InvalidActivationFunction("A single-argument function is required.")
-
-
-class ActivationFunctionSet(object):
-    """
-    Contains the list of current valid activation functions,
-    including methods for adding and getting them.
-    """
-
-    def __init__(self):
-        self.functions = {}
-        self.add('sigmoid', sigmoid_activation)
-        self.add('tanh', tanh_activation)
-        self.add('sin', sin_activation)
-        self.add('gauss', gauss_activation)
-        self.add('relu', relu_activation)
-        self.add('elu', elu_activation)
-        self.add('lelu', lelu_activation)
-        self.add('selu', selu_activation)
-        self.add('softplus', softplus_activation)
-        self.add('identity', identity_activation)
-        self.add('clamped', clamped_activation)
-        self.add('inv', inv_activation)
-        self.add('log', log_activation)
-        self.add('exp', exp_activation)
-        self.add('abs', abs_activation)
-        self.add('hat', hat_activation)
-        self.add('square', square_activation)
-        self.add('cube', cube_activation)
-
-    def add(self, name, function):
-        validate_activation(function)
-        self.functions[name] = function
-
-    def get(self, name):
-        f = self.functions.get(name)
-        if f is None:
-            raise InvalidActivationFunction("No such activation function: {0!r}".format(name))
-
-        return f
-
-    def is_valid(self, name):
-        return name in self.functions

@@ -1,5 +1,5 @@
 """
-Microgrid-simulaatio OpenAI gymiin
+Microgrid-simulation to OpenAI gym
 V 0.1
 """
 import os
@@ -20,16 +20,10 @@ from microgrid_sim.environment import get_default_microgrid_env
 
 class GridV0Env(gym.Env[np.ndarray, Union[int, np.ndarray]]):
     """
-    ### Description
-
-    Katso esimerkkiä --> custom_cartpole_env.py
+    Gym environment for the microgrid.
 
     """
 
-    # metadata = {
-    #     "render_modes": ["human", "rgb_array"],
-    #     "render_fps": 50,
-    # }
     spec = EnvSpec(
         id='Grid-v0',
         entry_point='grid_v0.envs:GridV0Env',
@@ -37,9 +31,6 @@ class GridV0Env(gym.Env[np.ndarray, Union[int, np.ndarray]]):
     )
 
     def __init__(self, max_total_steps: int):
-        """
-        Alustus environmentille. Tähän tilaan palataan resetillä.
-        """
         self._max_total_steps = max_total_steps
 
         project_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
@@ -85,17 +76,12 @@ class GridV0Env(gym.Env[np.ndarray, Union[int, np.ndarray]]):
 
     def step(self, action: spaces.MultiDiscrete):
         """
-        Tämä on se varsinainen työrukkanen, jossa itse simuloinnin ajaminen tapahtuu.
-
-        Step ottaa inputtina neljä subactionia, joista jokainen voi saada tietyt arvot (ohjeistuksen mukaan):
+        Takes action as an input, returns new state and reward. The action consists of:
             TCL action:               [0:3]
             Price action:             [0:4]
             Energy deficiency action: [0:1]
             Energy excess action:     [0:1]
 
-        Näistä toki vielä tarkistettava että
-
-        Palauttaa staten ja rewardin
         """
         err_msg = f"{action!r} ({type(action)}) invalid"
         assert self.action_space.contains(action), err_msg
@@ -118,7 +104,7 @@ class GridV0Env(gym.Env[np.ndarray, Union[int, np.ndarray]]):
         options: Optional[dict] = None,
     ):
         """
-        Palauttaa aloitustilan. Jonkin verran tätäkin tarvinnee muuutella, mut ei ehkä niin paljoa.
+        Resets the environment to a starting state.
         """
         super().reset(seed=seed)
 
@@ -133,10 +119,10 @@ class GridV0Env(gym.Env[np.ndarray, Union[int, np.ndarray]]):
 
     def render(self):
         """
-        Renderöintimetodi. Voidaan jättää tekeminen viimeiseksi tai kokonaan pois, ei pakollinen.
+        For rendering a visualization, not used.
         """
 
     def close(self):
         """
-        En ole ihan varma tarvitseeko tätä lähinnä renderöinnin lopettamiseen. Ehkä.
+        For closing visualization, not used.
         """

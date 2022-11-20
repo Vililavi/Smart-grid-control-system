@@ -53,10 +53,14 @@ def _state_to_network_input(state: tuple[ArrayLike, int, int]) -> list[float]:
     state_list.extend([float(price_counter), float(hour)])
 
     # Normalize to mean = 0.0 and standard deviation = 1.0
+    state_list[0] = (state_list[0] - 0.5) * 3.0  # crude estimate of the correct values
+    state_list[1] = (state_list[1] - 0.5) * 3.0  # crude estimate of the correct values
     state_list[2] = (state_list[2] - 7.289) / 8.947
     state_list[3] = (state_list[3] - 498.91) / 385.17
     state_list[4] = (state_list[4] - 43.48) / 36.96
     state_list[5] = (state_list[5] - 0.5417) / 0.2971
+    state_list[6] = state_list[6] / 2.0  # crude estimate of the correct values
+    state_list[7] = (state_list[7] - 11.5) / 30.0  # should be enough that this scales close to linearly in sigmoid
 
     return state_list
 
@@ -99,32 +103,32 @@ def main():
     neat_config = NeatParams(
         population_size=50,
 
-        repro_survival_rate=0.2,    # What percentage of species' top members are used for reproduction
+        repro_survival_rate=0.1,    # What percentage of species' top members are used for reproduction
         min_species_size=2,
         max_stagnation=5,
         num_surviving_elite_species=3,  # Minimum number of species to be retained
 
-        compatibility_threshold=0.5,
+        compatibility_threshold=0.4,
         disjoint_coefficient=1.0,
-        weight_coefficient=0.22,
-        keep_disabled_probability=0.5,
+        weight_coefficient=0.13,
+        keep_disabled_probability=0.8,
 
-        node_mutation_probability=0.2,
-        connection_mutation_probability=0.7,
+        node_mutation_probability=0.03,
+        connection_mutation_probability=0.1,
         adjust_weight_prob=0.8,
-        replace_weight_prob=0.1,
+        replace_weight_prob=0.05,
         adjust_bias_prob=0.6,
-        replace_bial_prob=0.1,
+        replace_bial_prob=0.05,
 
         weight_init_mean=0.0,
         weight_init_stdev=2.0,
-        weight_max_adjust=0.3,
+        weight_max_adjust=0.03,
         weight_min_val=-10.0,
         weight_max_val=10.0,
 
         bias_init_mean=0.0,
         bias_init_stdev=2.0,
-        bias_max_adjust=0.2,
+        bias_max_adjust=0.03,
         bias_min_val=-10.0,
         bias_max_val=10.0,
     )

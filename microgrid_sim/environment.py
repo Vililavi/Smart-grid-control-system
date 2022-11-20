@@ -144,8 +144,8 @@ class Environment:
         base_res_load = self.components.households_manager.get_base_residential_load(hour_of_day)
 
         state_vector = (
-            tcl_soc,
-            ess_soc,
+            min(1.0, max(0.0, tcl_soc)),
+            min(1.0, max(0.0, ess_soc)),
             out_temp,
             generated_energy,
             up_price,
