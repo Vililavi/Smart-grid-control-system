@@ -1,3 +1,4 @@
+from copy import deepcopy
 from math import sqrt, log2
 from dataclasses import dataclass, field
 from itertools import count
@@ -95,7 +96,13 @@ class Genome:
             parent_1, parent_2 = genome_2, genome_1
 
         connections = Genome._get_inherited_connections(parent_1, parent_2, keep_disable_prob)
-        return cls(key, parent_1.inputs, parent_1.output_keys, parent_1.nodes, connections)
+        nodes = {}
+        for (in_key, out_key) in connections:
+            if in_key in parent_1.nodes and in_key not in nodes:
+                nodes[in_key] = deepcopy(parent_1.nodes[in_key])
+            if out_key in parent_1.nodes and out_key not in nodes:
+                nodes[out_key] = deepcopy(parent_1.nodes[out_key])
+        return cls(key, parent_1.inputs, parent_1.output_keys, nodes, connections)
 
     @staticmethod
     def _get_inherited_connections(

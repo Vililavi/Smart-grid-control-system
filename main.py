@@ -105,30 +105,30 @@ def main():
 
         repro_survival_rate=0.1,    # What percentage of species' top members are used for reproduction
         min_species_size=2,
-        max_stagnation=10,
-        num_surviving_elite_species=4,  # Minimum number of species to be retained
+        max_stagnation=5,
+        num_surviving_elite_species=3,  # Minimum number of species to be retained
 
-        compatibility_threshold=0.5,
+        compatibility_threshold=0.4,
         disjoint_coefficient=1.0,
-        weight_coefficient=0.15,
-        keep_disabled_probability=0.5,
+        weight_coefficient=0.13,
+        keep_disabled_probability=0.8,
 
-        node_mutation_probability=0.3,
-        connection_mutation_probability=0.9,
+        node_mutation_probability=0.03,
+        connection_mutation_probability=0.1,
         adjust_weight_prob=0.8,
         replace_weight_prob=0.05,
-        adjust_bias_prob=0.7,
-        replace_bial_prob=0.1,
+        adjust_bias_prob=0.6,
+        replace_bial_prob=0.05,
 
         weight_init_mean=0.0,
-        weight_init_stdev=3.0,
-        weight_max_adjust=0.1,
+        weight_init_stdev=2.0,
+        weight_max_adjust=0.03,
         weight_min_val=-10.0,
         weight_max_val=10.0,
 
         bias_init_mean=0.0,
         bias_init_stdev=2.0,
-        bias_max_adjust=0.05,
+        bias_max_adjust=0.03,
         bias_min_val=-10.0,
         bias_max_val=10.0,
     )
@@ -142,6 +142,11 @@ def main():
         f"\nWinning genome: {winning_genome}\nFitness: {winning_genome.fitness}"
         f"\nNum hidden nodes: {len(winning_genome.nodes) - len(winning_genome.output_keys)}")
     print(f"total run time: {(end_t - start_t):.2f} seconds")
+    new_conns = []
+    for (in_key, out_key), conn in winning_genome.connections.items():
+        if in_key > 87 or out_key > 87:
+            new_conns.append(conn)
+    print(f"added conns: {new_conns}")
     draw_species_graph(evolution.species_history)
 
 
