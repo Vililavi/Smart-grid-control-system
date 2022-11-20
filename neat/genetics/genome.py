@@ -77,15 +77,13 @@ class Genome:
         connections = {}
         for i in range(num_inputs):
             inputs[node_start + i] = NodeGene(i, NodeType.SENSOR, bias_options.get_new_val())
-            for j in range(num_outputs):
+            for j in output_keys:
                 c_key = (i, j)
                 connections[c_key] = ConnectionGene(
-                    i, num_inputs + j, weight_options.get_new_val(), True, conn_start + i * j
+                    i, j, weight_options.get_new_val(), True, conn_start + i * j
                 )
-        for i in range(num_outputs):
-            nodes[node_start + num_inputs + i] = NodeGene(
-                node_start + num_inputs + i, NodeType.OUTPUT, bias_options.get_new_val()
-            )
+        for i in output_keys:
+            nodes[i] = NodeGene(i, NodeType.OUTPUT, bias_options.get_new_val())
         return cls(key, inputs, output_keys, nodes, connections)
 
     @classmethod
